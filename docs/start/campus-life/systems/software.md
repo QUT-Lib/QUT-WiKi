@@ -43,7 +43,7 @@ top: 9
     { text: 'QQ', icon: 'https://pic1.imgdb.cn/i/0341maiY7e0cXKrj7wSm3w.webp', desc: '即时通讯工具' },
     { text: '腾讯会议', icon: 'https://pic1.imgdb.cn/i/0341maiYtxky1xuK927WNy.webp', desc: '在线会议工具' },
     { text: '支付宝', icon: 'https://pic1.imgdb.cn/i/0341maiiG29xGWy0hjP78d.webp', desc: '支付工具' },
-    { text: '拾光课程表', icon: 'https://pic1.imgdb.cn/i/0341kUmdh2xjFt6KXqJ5Vy.webp', desc: '推荐的开源课程表', link: 'https://gitee.com/XingHeYuZhuan-gh/shiguangschedule/releases' },
+    { text: '拾光课程表', icon: 'https://pic1.imgdb.cn/i/0341kUmdh2xjFt6KXqJ5Vy.webp', desc: '推荐的开源课程表', link: 'https://sgschedule.jursin.top/download.html' },
     { text: '豆包', icon: 'https://pic1.imgdb.cn/i/0341maiXjLvE8bZjgTF3UF.webp', desc: '智能问答工具' },
     { text: 'Deepseek', icon: 'https://pic1.imgdb.cn/i/0341maj6jAwQYBRbqMXnuc.webp', desc: '智能问答工具' },
     { text: '全球网测', icon: 'https://pic1.imgdb.cn/i/0341maighMi1PPtDF90L6N.webp', desc: '中国信通院出品的测网工具' },
