@@ -3,5 +3,4 @@ docs/** linguist-documentation=false
 
 docs/.vitepress/dist/** linguist-generated=true
 docs/.vitepress/cache/** linguist-generated=true
-docs/.http_cache/** linguist-generated=true
 docs/**/.playwright-mcp/** linguist-generated=true

@@ -3,9 +3,6 @@ node_modules
 .env.*.local
 docs/.vitepress/dist
 docs/.vitepress/cache
-docs/.vitepress/contributors.json
-docs/.http_cache
 .DS_Store
 *.log
 .playwright-mcp
-code/sync.ffs_db

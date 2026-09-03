@@ -1,23 +1,21 @@
 {
-  "name": "qutwiki",
-  "version": "1.0.0",
+  "name": "vitepress-qutwiki-kit-workspace",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "node docs/.vitepress/scripts/gen-contributors.mjs && vitepress dev docs",
-    "build": "node docs/.vitepress/scripts/gen-contributors.mjs && vitepress build docs",
-    "build:fresh": "node docs/.vitepress/scripts/build-fresh.mjs",
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "build:template": "npm run build --prefix template/wiki",
     "preview": "vitepress preview docs",
-    "gen-contributors": "node docs/.vitepress/scripts/gen-contributors.mjs"
+    "check": "npm run build && npm run build:template"
   },
   "devDependencies": {
+    "vitepress-qutwiki-kit": "file:packages/vitepress-qutwiki-kit",
     "vitepress": "^1.5.0",
     "vue": "^3.5.0"
-  },
-  "dependencies": {
-    "markdown-it-task-lists": "^2.1.1",
-    "playwright": "^1.62.1",
-    "twikoo": "^1.7.20",
-    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   }
 }

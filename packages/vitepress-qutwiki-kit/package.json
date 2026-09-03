@@ -1,0 +1,29 @@
+{
+  "name": "vitepress-qutwiki-kit",
+  "version": "0.1.0",
+  "description": "Reusable wiki components, Markdown extensions, search helpers and automatic navigation for VitePress",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts",
+    "./markdown": "./src/markdown.ts",
+    "./twikoo": "./src/twikoo.ts",
+    "./components/*": "./src/components/*.vue"
+  },
+  "peerDependencies": {
+    "twikoo": ">=1.6.0",
+    "vitepress": ">=1.5.0 <2.0.0",
+    "vue": ">=3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "twikoo": {
+      "optional": true
+    }
+  }
+}
