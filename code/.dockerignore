@@ -1,7 +1,0 @@
-*
-!package.json
-!package-lock.json
-!server.mjs
-!xlsx-sync.mjs
-!qutwiki-sync.mjs
-!vendor/xlsx-0.20.3.tgz
