@@ -1,0 +1,16 @@
+{
+  "name": "my-vitepress-wiki",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs"
+  },
+  "dependencies": {
+    "vitepress-qutwiki-kit": "file:../../packages/vitepress-qutwiki-kit",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.0"
+  }
+}
