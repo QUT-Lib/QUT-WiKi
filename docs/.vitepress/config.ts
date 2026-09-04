@@ -285,7 +285,11 @@ export default defineConfig({
   lastUpdated: true,
   cleanUrls: true,
   vite: {
+    envDir: resolve(docsRoot, '..'),
     plugins: [sidebarWatchPlugin()],
+    build: {
+      chunkSizeWarningLimit: 1100,
+    },
   },
   markdown: {
     config: (md) => {

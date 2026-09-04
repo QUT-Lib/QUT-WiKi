@@ -66,6 +66,13 @@ const contributorMeta = [
     links: [
       { text: 'GitHub', url: 'https://github.com/Link-Blue' },
     ],
+  },
+  {
+    name: 'cxz312',
+    tags: [],
+    links: [
+      { text: 'GitHub', url: 'https://github.com/CXZ-cxz-cell' },
+    ],
   }
 ]
 
@@ -223,3 +230,7 @@ const contributors = contributorMeta.map((item) => {
 本项目的一些前端样式和后端代码参考了[**西邮Wiki**](https://wiki.cooo.site/)，在此感谢[**西邮Wiki项目组**](https://github.com/xupt-wiki/xupt-wiki)的无私开源。
 
 校园地图功能参考了[**CQUMAPS**（重庆大学校园地图导航系统）](https://github.com/littlemana-bot/CQUMAPS)与[**CQU-openlib**（重庆大学资源共享计划）](https://github.com/INFO-studio/CQU-openlib)，页面布局、交互设计与配色方案借鉴自其开源代码（[cqu-openlib.cn/map](https://cqu-openlib.cn/map)），在此感谢两个项目的无私开源。
+
+## 特别鸣谢
+
+- 感谢青岛理工大学杨鑫老师为校园地图移动端详情卡片的固定定位与浏览器底部栏适配提供解决思路。

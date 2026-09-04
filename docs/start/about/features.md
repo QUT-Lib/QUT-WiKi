@@ -278,13 +278,38 @@ contributors:
 
 ---
 
-## 六、Frontmatter 扩展配置
+## 六、Twikoo 评论
+
+普通文档页底部使用 [Twikoo](https://twikoo.js.org/) 提供评论功能。首页和 `layout: page` 的页面不会显示评论区。
+
+部署 Twikoo 后，在构建环境中设置服务地址：
+
+```dotenv
+VITE_TWIKOO_ENV_ID=https://twikoo.quters.top
+```
+
+本地开发时可复制仓库根目录的 `.env.example` 为 `.env.local` 并填写地址。环境变量变更后需要重启开发服务器；未配置该变量时不显示评论区。
+
+如需在某篇普通文档中关闭评论，可在 frontmatter 中添加：
+
+```yaml
+---
+comments: false
+---
+```
+
+Twikoo 客户端采用动态加载，不参与服务端渲染，也不会进入站点首屏主包。
+
+---
+
+## 七、Frontmatter 扩展配置
 
 QUTWiKi 在 VitePress 原生 frontmatter 之外新增以下配置项：
 
 ```yaml
 ---
 wordCount: false
+comments: false
 contributors:
   - name: 张三
 ---
@@ -293,11 +318,12 @@ contributors:
 | 配置项 | 类型 | 默认 | 说明 |
 |--------|------|------|------|
 | `wordCount` | boolean | `true` | `false` 关闭字数统计与阅读时间 |
+| `comments` | boolean | `true` | `false` 关闭当前文档的 Twikoo 评论区 |
 | `contributors` | array/string | 自动读取 Git 提交者 | 额外添加本文贡献者，支持姓名、GitHub 用户名和头像 |
 
 ---
 
-## 七、构建脚本
+## 八、构建脚本
 
 项目根目录的 `build.ps1` 一键构建并启动开发服务器：
 

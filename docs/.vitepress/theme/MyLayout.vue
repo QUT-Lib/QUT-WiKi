@@ -3,11 +3,18 @@ import DefaultTheme from 'vitepress/theme'
 import { useData, useRoute } from 'vitepress'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Contributors from './components/Contributors.vue'
+import TwikooComments from './components/TwikooComments.vue'
 
 const { frontmatter } = useData()
 const route = useRoute()
+const twikooEnvId = import.meta.env.VITE_TWIKOO_ENV_ID
 
 const sidebarDrawerEnabled = computed(() => frontmatter.value.sidebarDrawer === true)
+const commentsEnabled = computed(() =>
+  Boolean(twikooEnvId) &&
+  frontmatter.value.comments !== false &&
+  !['home', 'page'].includes(frontmatter.value.layout)
+)
 const visible = ref(false)
 const src = ref('')
 const alt = ref('')
@@ -139,6 +146,9 @@ onUnmounted(() => {
     <DefaultTheme.Layout>
       <template #doc-footer-before>
         <Contributors />
+      </template>
+      <template #doc-after>
+        <TwikooComments v-if="commentsEnabled" :key="route.path" :env-id="twikooEnvId" />
       </template>
     </DefaultTheme.Layout>
   </div>

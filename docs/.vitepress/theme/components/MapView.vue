@@ -37,6 +37,8 @@ const locationError = ref('')
 const routeSummary = ref(null)
 const locationReady = ref(false)
 const detailPosition = ref(null)
+const detailCardEl = ref(null)
+const detailCardHeight = ref(0)
 
 let markerCache = new Map()
 let polygonsRef = null
@@ -47,6 +49,7 @@ let searchTimer = null
 let hoverCloseTimer = null
 let destroyFlag = false
 let visualViewport = null
+let detailResizeObserver = null
 
 /* ================= 派生数据 ================= */
 const campusBuildings = computed(() =>
@@ -350,6 +353,19 @@ function stopVisualViewportObserver() {
   visualViewport = null
 }
 
+watch(selected, async (building) => {
+  detailResizeObserver?.disconnect()
+  detailCardHeight.value = 0
+  if (!building) return
+  await nextTick()
+  if (!detailCardEl.value) return
+  detailCardHeight.value = detailCardEl.value.offsetHeight
+  detailResizeObserver = new ResizeObserver(([entry]) => {
+    detailCardHeight.value = entry.borderBoxSize?.[0]?.blockSize || entry.contentRect.height
+  })
+  detailResizeObserver.observe(detailCardEl.value)
+})
+
 /* ================= 地图初始化 ================= */
 function initMap() {
   const campus = CAMPUS_CONFIG[currentCampus.value]
@@ -627,6 +643,7 @@ onUnmounted(() => {
   }
   clearHoverCloseTimer()
   if (searchTimer) clearTimeout(searchTimer)
+  detailResizeObserver?.disconnect()
   stopVisualViewportObserver()
   clearRoute()
   if (locationMarker && map) {
@@ -774,6 +791,7 @@ onUnmounted(() => {
           type="button"
           class="recenter-btn"
           :class="{ 'recenter-btn-raised': selected }"
+          :style="selected ? { '--detail-card-height': `${detailCardHeight}px` } : undefined"
           aria-label="重新定位到我的位置"
           @click="recenterLocation"
         >
@@ -792,7 +810,7 @@ onUnmounted(() => {
         </div>
 
         <!-- 选中地点详情卡片（右下角） -->
-        <section v-if="selected" class="map-detail-card">
+        <section v-if="selected" ref="detailCardEl" class="map-detail-card">
           <div class="detail-head">
             <span class="detail-icon" v-html="categoryIconMarkup(selected.category, 15)"></span>
             <div class="detail-info">
@@ -1503,16 +1521,19 @@ html.dark .map-section {
     display: flex;
   }
   .map-detail-card {
+    position: fixed;
     right: 8px;
     left: 8px;
-    bottom: calc(8px + env(safe-area-inset-bottom) + var(--qut-browser-bottom-inset, 0px));
+    bottom: calc(8px + env(safe-area-inset-bottom));
   }
   .recenter-btn {
+    position: fixed;
     right: 8px;
     bottom: calc(18px + env(safe-area-inset-bottom) + var(--qut-browser-bottom-inset, 0px));
+    z-index: 11;
   }
   .recenter-btn-raised {
-    bottom: calc(170px + env(safe-area-inset-bottom) + var(--qut-browser-bottom-inset, 0px));
+    bottom: calc(16px + var(--detail-card-height, 0px) + env(safe-area-inset-bottom));
   }
   .mobile-location-btn {
     position: static;

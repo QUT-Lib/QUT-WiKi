@@ -1,4 +1,6 @@
 node_modules
+.env.local
+.env.*.local
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/.vitepress/contributors.json
