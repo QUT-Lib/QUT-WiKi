@@ -127,16 +127,43 @@ git commit --amend --reset-author
 如果你已经按前文创建过 `contribute` 分支，后续贡献时执行：
 
 ```bash
-# 同步源仓库的 contribute 分支
-git fetch upstream
-
 # 切换到自己的 contribute 分支
 git checkout contribute
+
+# 同步源仓库改动
+git fetch upstream
+git merge upstream/contribute
 
 # 正常修改、提交并推送到自己的 Fork 仓库 contribute 分支
 git add .
 git commit -m "新增: 文档说明"
 git push origin contribute
+```
+
+::: warning 为什么不能只 fetch？
+`git fetch upstream` 只会把源仓库的最新提交下载到本地的 `upstream/contribute` 这个"只读引用"，并不会改动你的本地 `contribute` 分支，更不会改动你的 Fork 仓库。只有再执行 `git merge upstream/contribute`，本地分支才会真正跟上源仓库的最新内容。否则你很可能在过时的基础上提交，PR 里出现冲突。
+
+等价写法：在 `contribute` 分支上直接执行 `git pull upstream contribute`（fetch + merge 一步完成）。
+
+如果你的 `contribute` 分支已有尚未推送的本地提交，被合并后推送即可；若分支上已落后多代、改动较大，也可以改用变基让历史更干净：
+
+```bash
+git pull --rebase upstream contribute
+```
+
+变基会重写本地提交历史，若该分支此前已经推送到 Fork 并用于 PR，之后需用 `git push --force-with-lease origin contribute`（注意：`--force-with-lease` 比 `git push --force` 安全）。
+:::
+
+同步后若产生冲突，需手动解决：编辑冲突文件保留想要的内容，然后执行：
+
+```bash
+# 使用 merge 时
+git add .
+git commit
+
+# 或使用 rebase 时
+git add .
+git rebase --continue
 ```
 
 如果本地还没有 `contribute` 分支，请先执行：
@@ -149,7 +176,7 @@ git push origin contribute
 
 在 GitHub 上发起 Pull Request：
 
-- base repository：源仓库 `LucasAndrew0120/QUT-WiKi`
+- base repository：源仓库 `QUT-Lib/QUT-WiKi`
 - base 分支：`contribute`
 - compare repository：你的 Fork 仓库 `YOUR_USERNAME/QUT-WiKi`
 - compare 分支：你的 `contribute` 分支
@@ -160,7 +187,7 @@ git push origin contribute
 
 ## 六、注意事项
 
-- 每次贡献前先 `git fetch upstream`，确认自己的 `contribute` 分支基于最新的 `upstream/contribute`
+- 每次贡献前先同步上游：`git checkout contribute && git fetch upstream && git merge upstream/contribute`，确保本地 `contribute` 分支基于最新的 `upstream/contribute`（仅 fetch 不会更新本地分支，详见上文）
 - 一 PR 一事，不混入无关修改
 - 引用资料注明出处，个人信息须经本人同意
 - 不要在图片说明、链接或表格中嵌入脚本、事件属性或不受信任的远程资源
