@@ -409,6 +409,14 @@ export const BUILDINGS = [
     desc: '西操场下有肯德基、天下好面、临榆炸鸡腿、茶百道、云南傣族米线、橙堡（多摊位）、好想来、超市等。'
   },
   {
+    id: 'h_express_00',
+    name: '北区外卖点',
+    category: 'express',
+    campusId: 'h',
+    coord: [120.203668,35.98031],
+    desc: '位于北区4公寓和7公寓之间，收取外卖。'
+  },
+  {
     id: 'h_express_01',
     name: '西菜鸟驿站',
     category: 'express',
@@ -459,7 +467,7 @@ export const BUILDINGS = [
   {
     id: 'h_food_02',
     name: '翰墨轩打印店',
-    category: 'food',
+    category: 'library',
     campusId: 'h',
     coord: [120.202456,35.977137],
     desc: '位于西操场下东北入口处，提供打印、复印、装订等服务。'
@@ -467,7 +475,7 @@ export const BUILDINGS = [
   {
     id: 'h_food_03',
     name: '东区学生服务中心',
-    category: 'food',
+    category: 'library',
     campusId: 'h',
     coord: [120.208323,35.976362],
     desc: '位于东区宿舍下，提供打印等服务。'
@@ -683,7 +691,7 @@ export const BUILDINGS = [
   {
     id: 's_food_01',
     name: '百度图文',
-    category: 'food',
+    category: 'library',
     campusId: 's',
     coord: [120.371432,36.101743],
     desc: '理工大学北院食堂楼下网点（高德POI）。'
