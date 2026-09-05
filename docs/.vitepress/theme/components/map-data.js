@@ -18,6 +18,7 @@ export const CATEGORY_CONFIG = {
   landmark:   { label: '地标建筑', color: '#015D95' },
   college:    { label: '学院楼',   color: '#0E6FA8' },
   food:       { label: '附近美食', color: '#7BA8E0' },
+  shop:       { label: '商铺',     color: '#6C8FD4' },
   express:    { label: '快递点',   color: '#4A7CC0' },
   transit:    { label: '轨道交通', color: '#3B6BA5' }
 }
@@ -50,6 +51,7 @@ export const CATEGORY_ICON_PATHS = {
   college:
     '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
   food: '<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/>',
+  shop: '<path d="M3 9l1-5h16l1 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-6h6v6"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>',
   express:
     '<path d="M12 22v-9"/><path d="M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z"/><path d="M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13"/><path d="M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z"/>'
 }
@@ -75,7 +77,8 @@ export const FILTER_LIST = [
   { key: 'landmark',   label: '地标建筑', icon: 'fa-star' },
   { key: 'college',    label: '学院楼',   icon: 'fa-university' },
   { key: 'food',       label: '附近美食', icon: 'fa-coffee' },
-  { key: 'express',    label: '快递点',   icon: 'fa-archive' },
+  { key: 'shop',       label: '商铺',     icon: 'fa-shopping-bag' },
+  { key: 'express',    label: '快递/外卖点',   icon: 'fa-archive' },
   { key: 'transit',    label: '轨道交通', icon: 'fa-train' }
 ]
 
@@ -467,7 +470,7 @@ export const BUILDINGS = [
   {
     id: 'h_food_02',
     name: '翰墨轩打印店',
-    category: 'library',
+    category: 'shop',
     campusId: 'h',
     coord: [120.202456,35.977137],
     desc: '位于西操场下东北入口处，提供打印、复印、装订等服务。'
@@ -475,7 +478,7 @@ export const BUILDINGS = [
   {
     id: 'h_food_03',
     name: '东区学生服务中心',
-    category: 'library',
+    category: 'shop',
     campusId: 'h',
     coord: [120.208323,35.976362],
     desc: '位于东区宿舍下，提供打印等服务。'
