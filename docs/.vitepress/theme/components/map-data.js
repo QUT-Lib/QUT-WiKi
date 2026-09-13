@@ -162,11 +162,11 @@ export const BUILDINGS = [
     photos: ['https://pic1.imgdb.cn/i/034MSTkfeil1fWqFrOg7hW.webp']
   },
   {
-    id: 'h_college_06',
+    id: 'h_college_07',
     name: '学生服务中心',
     category: 'college',
     campusId: 'h',
-    coord: [120.204917, 35.971282],
+    coord: [120.20491,35.971266],
     desc: '设置在现代教育中心内部，有青岛银行的ATM机，可存取现金'
   },
   {
