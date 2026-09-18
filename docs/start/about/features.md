@@ -347,7 +347,71 @@ export const siteAnnouncement = {
 
 ---
 
-## 九、构建脚本
+## 九、图床资源批量下载与本地化
+
+站点图片目前托管在第三方图床（`pic1.imgdb.cn`、`pic.imgdb.cn`）。若图床失效、需要整体备份或迁移到自建存储，可用 `docs/scripts/images.mjs` 一键抓取并精确替换链接。
+
+脚本零第三方依赖，基于 Node 18+ 内置 `fetch`，适用于任意 VitePress（或一般 Markdown）仓库。
+
+### 三个命令
+
+```bash
+npm run images:check      # 体检：并发探测所有图床链接是否有效
+npm run images:download   # 下载：抓取全部图片到 docs/public/images/
+npm run images:rewrite    # 替换：把图床链接改写为本地路径
+```
+
+每个命令都支持：
+
+| 参数 | 说明 |
+|------|------|
+| `--dry` | 预演，只统计不写盘（下载不落文件、替换不修改源文件） |
+| `--concurrency N` | 并发数，默认 `8` |
+
+典型流程：
+
+```bash
+npm run images:check -- --dry          # 先看看有没有失效链接
+npm run images:download                # 抓取图片（已存在的自动跳过）
+npm run images:rewrite -- --dry        # 预览将要替换的位置
+npm run images:rewrite                 # 确认无误后执行替换
+```
+
+> 两个命令均可重复执行：已下载的文件会跳过，已替换的链接不会被二次处理。
+
+### 迁移到别的仓库
+
+只需修改 `docs/scripts/images.mjs` 配置区的 `SRC_HOSTS`（图床域名），其余无需适配：
+
+```js
+// 需要抓取的图床域名（可写多个）。只处理这些域名的图片。
+const SRC_HOSTS = ['pic1.imgdb.cn', 'pic.imgdb.cn']
+```
+
+替换后的路径统一走根路径前缀，与仓库、域名解耦。例如：
+
+```
+https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
+  →  /images/pic1.imgdb.cn/0349E4NqLje1oLHNowvJ4R.png
+```
+
+本地路径保留原始 `host/文件名` 结构，因此多个图床的图片不会重名冲突；换域名或换仓库时内容文件完全不用改。
+
+### 覆盖范围与行为
+
+- 扫描 `docs/` 下的 `.md`、`.markdown`、`.vue`、`.html`、`.ts`、`.js`、`.mjs`、`.json`、`.yml` 文件
+- 自动跳过 `node_modules`、`dist`、`cache`、`vendor` 和 `.git` 目录
+- 识别带 `png/jpg/jpeg/gif/webp/svg/bmp/avif/ico/tiff` 扩展名的绝对 URL，支持查询串
+- 替换时同步删除指向源图床的 `dns-prefetch` / `preconnect` 提示（图片已本地化，无需预连接远端）
+- 非图床域名的图片（如 `example.com`、`qhimg.com`）不受影响
+
+### 本地图片目录
+
+抓取结果存放在 `docs/public/images/`，构建时会原样复制进站点产物，通过 `/images/...` 直接访问，无需额外配置。
+
+---
+
+## 十、构建脚本
 
 项目根目录的 `build.ps1` 一键构建并启动开发服务器：
 
