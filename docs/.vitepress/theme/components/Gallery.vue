@@ -56,11 +56,9 @@ function layout() {
   const width = root.value.clientWidth
   if (!width) return
 
-  const rows: Array<ReturnType<typeof getItems>> = []
-  let row: ReturnType<typeof getItems> = []
-  let ratioSum = 0
+  const items = getItems()
 
-  for (const item of getItems()) {
+  items.forEach((item) => {
     const widthAttribute = Number(item.image.getAttribute('width'))
     const heightAttribute = Number(item.image.getAttribute('height'))
     const ratio = item.image.naturalWidth && item.image.naturalHeight
@@ -71,17 +69,31 @@ function layout() {
 
     item.element.dataset.galleryItem = ''
     item.element.dataset.galleryRatio = String(ratio)
-    row.push(item)
-    ratioSum += ratio
+  })
 
-    if (ratioSum * props.rowHeight + (row.length - 1) * props.gap >= width) {
-      rows.push(row)
-      row = []
-      ratioSum = 0
+  const rows: Array<ReturnType<typeof getItems>> = []
+
+  if (items.length > 0 && items.length % 2 === 0) {
+    // Keep even galleries balanced instead of letting image ratios create a 3+1 row.
+    const midpoint = items.length / 2
+    rows.push(items.slice(0, midpoint), items.slice(midpoint))
+  } else {
+    let row: ReturnType<typeof getItems> = []
+    let ratioSum = 0
+
+    for (const item of items) {
+      row.push(item)
+      ratioSum += Number(item.element.dataset.galleryRatio)
+
+      if (ratioSum * props.rowHeight + (row.length - 1) * props.gap >= width) {
+        rows.push(row)
+        row = []
+        ratioSum = 0
+      }
     }
-  }
 
-  if (row.length) rows.push(row)
+    if (row.length) rows.push(row)
+  }
 
   rows.forEach((items, index) => {
     const totalRatio = items.reduce(
