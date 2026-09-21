@@ -73,7 +73,7 @@ function layout() {
 
   const rows: Array<ReturnType<typeof getItems>> = []
 
-  if (items.length > 0 && items.length % 2 === 0) {
+  if (items.length >= 4 && items.length % 2 === 0) {
     // Keep even galleries balanced instead of letting image ratios create a 3+1 row.
     const midpoint = items.length / 2
     rows.push(items.slice(0, midpoint), items.slice(midpoint))
