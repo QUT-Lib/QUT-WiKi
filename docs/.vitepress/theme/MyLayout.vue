@@ -18,6 +18,8 @@ const commentsEnabled = computed(() =>
 const visible = ref(false)
 const src = ref('')
 const alt = ref('')
+const sources = ref([])
+const index = ref(0)
 const scale = ref(1)
 const tx = ref(0)
 const ty = ref(0)
@@ -31,14 +33,37 @@ function updateBodyOverflow() {
   document.body.style.overflow = visible.value ? 'hidden' : ''
 }
 
-function open(s, a) {
-  src.value = s
-  alt.value = a || ''
-  visible.value = true
+const hasGallery = computed(() => sources.value.length > 1)
+
+function resetTransform() {
   scale.value = 1
   tx.value = 0
   ty.value = 0
+}
+
+function open(element) {
+  const inMain = element.closest('.main') || document
+  const nodes = Array.from(inMain.querySelectorAll('img')).filter((img) => img.closest('.main'))
+  sources.value = nodes
+  const at = nodes.indexOf(element)
+  index.value = at >= 0 ? at : 0
+  apply(at >= 0 ? element : nodes[0])
+  visible.value = true
   updateBodyOverflow()
+}
+
+function apply(element) {
+  if (!element) return
+  src.value = element.currentSrc || element.src
+  alt.value = element.alt || ''
+  resetTransform()
+}
+
+function go(step) {
+  if (!hasGallery.value) return
+  const len = sources.value.length
+  index.value = (index.value + step + len) % len
+  apply(sources.value[index.value])
 }
 
 function close() {
@@ -96,14 +121,22 @@ function onPointerUp(e) {
 }
 
 function onKeydown(e) {
-  if (e.key !== 'Escape') return
-  if (visible.value) close()
+  if (!visible.value) return
+  if (e.key === 'Escape') {
+    close()
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    go(-1)
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    go(1)
+  }
 }
 
 function onDocumentClick(e) {
   const target = e.target
   if (target instanceof HTMLImageElement && target.closest('.main')) {
-    open(target.currentSrc || target.src, target.alt)
+    open(target)
   }
 }
 
@@ -163,6 +196,20 @@ onUnmounted(() => {
   <Teleport to="body">
     <div v-if="visible" class="img-viewer-bg" @click="close">
       <button class="img-viewer-close" @click="close">&times;</button>
+      <button
+        v-if="hasGallery"
+        class="img-viewer-nav img-viewer-prev"
+        type="button"
+        aria-label="上一张"
+        @click.stop="go(-1)"
+      >&#10094;</button>
+      <button
+        v-if="hasGallery"
+        class="img-viewer-nav img-viewer-next"
+        type="button"
+        aria-label="下一张"
+        @click.stop="go(1)"
+      >&#10095;</button>
       <div
         class="img-viewer-stage"
         @click.stop
@@ -183,6 +230,7 @@ onUnmounted(() => {
         />
       </div>
       <p v-if="alt" class="img-viewer-caption">{{ alt }}</p>
+      <span v-if="hasGallery" class="img-viewer-counter">{{ index + 1 }} / {{ sources.length }}</span>
     </div>
   </Teleport>
 </template>
@@ -219,6 +267,49 @@ onUnmounted(() => {
 
 .img-viewer-close:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+.img-viewer-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--vp-c-brand-1);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--vp-c-brand-1);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: translateY(-50%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.img-viewer-nav:hover {
+  background: var(--vp-c-brand-1);
+  color: #fff;
+}
+
+.img-viewer-prev {
+  left: 20px;
+}
+
+.img-viewer-next {
+  right: 20px;
+}
+
+.img-viewer-counter {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  pointer-events: none;
 }
 
 .img-viewer-stage {
