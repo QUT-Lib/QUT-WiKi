@@ -20,7 +20,7 @@
   "dependencies": {
     "markdown-it-task-lists": "^2.1.1",
     "playwright": "^1.62.1",
-    "twikoo": "^1.7.20",
+    "twikoo": "^2.0.9",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   }
 }
