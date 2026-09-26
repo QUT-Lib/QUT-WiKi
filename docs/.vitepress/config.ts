@@ -358,7 +358,7 @@ export default defineConfig({
       { icon: 'github', link: 'https://github.com/QUT-Lib/QUT-WiKi' }
     ],
     footer: {
-      message: `基于 VitePress 构建  ·  全站共计 <span style="color:rgb(1,93,149)">${totalK}K</span> 字`,
+      message: `基于 VitePress 构建  ·  全站共计 <span style="color:rgb(1,93,149)">${totalK}K</span> 字<span id="qutwiki-site-stats"></span>`,
       copyright: 'Copyright © 2026 <a href="https://github.com/QUT-Lib/QUT-WiKi" style="color:inherit;">QUTWiKi</a><br>本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" style="color:inherit;">CC BY-NC-SA 4.0</a> 声明'
     },
     outline: { level: [2, 3], label: '本页导航' },

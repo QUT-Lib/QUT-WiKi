@@ -4,6 +4,7 @@ import { useData, useRoute } from 'vitepress'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Contributors from './components/Contributors.vue'
 import TwikooComments from './components/TwikooComments.vue'
+import SiteStats from './components/SiteStats.vue'
 
 const { frontmatter } = useData()
 const route = useRoute()
@@ -193,6 +194,7 @@ onUnmounted(() => {
       </template>
     </DefaultTheme.Layout>
   </div>
+  <SiteStats />
   <Teleport to="body">
     <div v-if="visible" class="img-viewer-bg" @click="close">
       <button class="img-viewer-close" @click="close">&times;</button>
