@@ -1,0 +1,65 @@
+name: 构建并部署站点
+
+on:
+  push:
+    branches:
+      - contribute
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: 构建并部署到阿里云服务器
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码（含完整历史，供贡献者统计使用）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 安装依赖
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm ci
+
+      - name: 构建站点
+        run: npm run build
+
+      - name: 准备 SSH 密钥
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: 部署到服务器
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+          SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+        run: |
+          set -euo pipefail
+          KEY="$HOME/.ssh/deploy_key"
+          RSYNC_SSH="ssh -i $KEY -p ${SSH_PORT:-22} -o StrictHostKeyChecking=yes"
+          rsync -avz --delete --delay-updates --chmod=D755,F644 \
+            -e "$RSYNC_SSH" \
+            docs/.vitepress/dist/ \
+            "$SSH_USER@$SSH_HOST:/"
+          echo "::notice::站点部署完成（目标由服务器端 rrsync 限定目录）"
