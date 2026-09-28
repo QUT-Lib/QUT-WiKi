@@ -1,0 +1,68 @@
+name: PR 检查通过通知
+
+on:
+  workflow_run:
+    workflows: ["PR 规范检查"]
+    types: [completed]
+
+permissions:
+  issues: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  notify:
+    name: 检查通过后提醒维护者
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 在 PR 中 @ 维护者
+        uses: actions/github-script@v7
+        env:
+          MAINTAINER: LucasAndrew0120
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        with:
+          script: |
+            const marker = '<!-- ci-passed-notify -->';
+            const pullRequests = context.payload.workflow_run.pull_requests || [];
+            if (pullRequests.length === 0) {
+              core.notice('未找到关联的 Pull Request，跳过提醒。');
+              return;
+            }
+            for (const pr of pullRequests) {
+              if (pr.base && pr.base.ref !== 'contribute') {
+                core.info(`PR #${pr.number} 的目标分支为 ${pr.base.ref}，不在提醒范围内。`);
+                continue;
+              }
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                per_page: 100,
+              });
+              const already = comments.some((c) => c.body && c.body.includes(marker));
+              if (already) {
+                core.info(`PR #${pr.number} 已发送过提醒，跳过。`);
+                continue;
+              }
+              const body = [
+                marker,
+                `@${process.env.MAINTAINER} 本条 PR 的规范检查已通过，请安排审阅。`,
+                '',
+                `- 目标分支：\`${pr.base.ref}\``,
+                `- 来源分支：\`${process.env.HEAD_BRANCH}\``,
+                `- 检查详情：${process.env.RUN_URL}`,
+                '',
+                '> 提示：CI 仅校验目标分支与提交信息规范，内容质量仍需人工确认。',
+              ].join('\n');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+              core.notice(`已在 PR #${pr.number} 中提醒 ${process.env.MAINTAINER}。`);
+            }

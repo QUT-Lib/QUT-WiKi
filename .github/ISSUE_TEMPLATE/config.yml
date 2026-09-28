@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 参与编写指南
+    url: https://wiki.quters.top/start/about/contribute
+    about: 环境准备、文档规范、提交流程等完整指引（推荐先阅读）
+  - name: 项目组 QQ 群
+    url: https://qm.qq.com/q/752307273
+    about: 加入 QUTWiKi 项目组 QQ 群（752307273）进行讨论与反馈
+  - name: 邮件反馈
+    url: mailto:lucasandrew0120@outlook.com
+    about: 不便使用 GitHub 时，可通过邮箱发送修订内容或建议

@@ -1,0 +1,85 @@
+name: PR 规范检查
+
+on:
+  pull_request:
+    branches:
+      - contribute
+      - main
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-check:
+    name: 校验目标分支与提交信息
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 校验目标分支
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$BASE_REF" = "contribute" ]; then
+            echo "::notice::目标分支为 contribute，符合规范。"
+            exit 0
+          fi
+          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "contribute" ]; then
+            echo "::notice::本次为 contribute → main 的发布合并，允许通过。"
+            exit 0
+          fi
+          echo "::error::目标分支为 $BASE_REF，不符合规范。日常文档贡献请将 base 分支设置为 QUT-Lib/QUT-WiKi 的 contribute 分支；main 为受保护分支，不接收普通贡献 PR。"
+          exit 1
+
+      - name: 校验提交信息
+        if: github.base_ref == 'contribute'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF"
+          PREFIXES="新增|修订|优化|修复|更新|下线|移除|调整|重构|补充|回滚|文档|测试|构建|样式|安全|docs|chore|revert|build|ci|style|refactor|perf|test"
+          fail=0
+          count=0
+          rows=""
+          while IFS=$'\t' read -r hash subject; do
+            [ -z "$hash" ] && continue
+            count=$((count + 1))
+            short="${hash:0:7}"
+            if [[ "$subject" =~ ^($PREFIXES)[：:][[:space:]]*(.*)$ ]]; then
+              desc="${BASH_REMATCH[2]}"
+              if [ "${#desc}" -ge 2 ]; then
+                echo "通过  ${short}  ${subject}"
+                rows="${rows}| \`${short}\` | ${subject} | 通过 |\n"
+                continue
+              fi
+              echo "::error::提交 ${short} 的说明内容过短：${subject}。请在中文前缀与冒号后补充详细的改动说明。"
+            else
+              echo "::error::提交 ${short} 不符合提交信息规范：${subject}。请使用「中文前缀: 详细说明」格式，例如「新增: 添加市北校区建筑与设施信息」。可用前缀：新增 / 修订 / 优化 / 修复 / 更新。"
+            fi
+            rows="${rows}| \`${short}\` | ${subject} | 不符合 |\n"
+            fail=$((fail + 1))
+          done < <(git log --no-merges --pretty=format:"%H%x09%s" "origin/${BASE_REF}..HEAD"; echo)
+
+          {
+            echo "## PR 规范检查结果"
+            echo ""
+            if [ "$fail" -eq 0 ]; then
+              echo "目标分支与提交信息均符合规范，共检查 ${count} 个提交。"
+            else
+              echo "共检查 ${count} 个提交，其中 ${fail} 个不符合规范，请修改后重新推送。"
+            fi
+            echo ""
+            echo "| 提交 | 信息 | 结果 |"
+            echo "| --- | --- | --- |"
+            printf "%b" "$rows"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$fail" -gt 0 ]; then
+            exit 1
+          fi
+          echo "::notice::全部 ${count} 个提交均符合「中文前缀: 详细说明」规范。"

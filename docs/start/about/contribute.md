@@ -199,9 +199,51 @@ git push origin contribute
 - 本地构建统一使用 PowerShell 执行 `./build.ps1`
 - 收到 review 后在同一分支继续修改并 push 即可
 
+---
+
+### 七、提交前检查清单
+
+仓库已配置 CI 自动校验，会在你发起 PR 后检查**目标分支**与**提交信息规范**，不符合会在 PR 上标红，并在检查摘要中逐条列出原因。以下清单供你自查；通过 CI 后仍需维护者人工审阅内容质量。
+
+###### 目标分支
+
+- [ ] 本 PR 的 base 分支是源仓库 `QUT-Lib/QUT-WiKi` 的 `contribute` 分支（不是 `main`）
+- [ ] 本 PR 来自你 Fork 仓库的 `contribute` 分支，且已同步最新的 `upstream/contribute`
+- [ ] 本地已执行 `git fetch upstream && git merge upstream/contribute`（或 `git pull --rebase upstream contribute`）
+
+###### 提交信息规范
+
+本仓库提交信息统一使用「中文前缀: 详细说明」格式：
+
+```
+新增: 添加市北校区建筑与设施信息
+修订: 校园卡余额查询方式
+优化: Gallery 图片排列
+修复: 贡献者别名问题
+docs: 补充参与编写说明
+更新: 依赖目录
+```
+
+常用前缀：`新增` / `修订` / `优化` / `修复` / `更新` / `下线` / `重构`（也接受 `docs`、`chore` 等英文前缀）。冒号后需用中文写清改动内容。
+
+- [ ] 每个提交均以约定前缀开头，前缀后跟冒号与空格
+- [ ] 说明用中文且能准确描述改动，未使用 `update`、`fix`、`修改` 等无前缀或过于笼统的信息
+- [ ] 未改写他人已有提交历史（如需变基，已使用 `git push --force-with-lease`）
+
+###### 内容自检
+
+- [ ] 已运行 `npm run dev` 或 `./build.ps1` 本地预览，页面显示正常
+- [ ] 一 PR 一事，未混入无关修改
+- [ ] 未修改依赖时，未提交 `package.json` / `package-lock.json` 的变化
+- [ ] 新增/修改的文档包含 `# 标题` 或 frontmatter 的 `title`
+- [ ] 文件名使用小写英文 + 短横线（如 `canteen-guide.md`）
+- [ ] 引用资料已注明出处，个人信息已获本人同意
+- [ ] 未在图片说明、链接或表格中嵌入脚本、事件属性或不受信任的远程资源
+- [ ] XLSX 本地文件仅放在 `docs/resources/`，远程表格仅使用 `https://docs.qq.com/sheet/` 链接
+
+---
 
 ## 通过**飞书**流程
-
 - 欢迎您使用 [**飞书**](https://ycnbhi79uv2d.feishu.cn/wiki/YrIOwlkXlidu4zkAeOjcMP7XnFg?from=from_copylink) 进行 [**QUTWiKi**](https://wiki.quters.top) 的编写工作。
 - 在左侧三栏有**序言，新生入学，校园生活**三个分区，您可以在其中修订文章或者新增篇目。
 - 由于我不会经常登录飞书进行文档的查阅，所以如果您对文档有所更改，欢迎进入 [**QUTWiKi**](https://wiki.quters.top) 的项目组QQ群（**752307273**）进行反馈，或者联系我的个人邮箱说明情况（[**lucasandrew0120@outlook.com**](mailto:lucasandrew0120@outlook.com)）

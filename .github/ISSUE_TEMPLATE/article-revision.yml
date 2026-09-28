@@ -1,0 +1,57 @@
+name: 文章修订建议
+description: 对已有文档提出内容补充、纠错或结构调整的建议
+title: "[文章修订] "
+labels: ["文章修订"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您为青理 WiKi 提出修订建议！请尽量把信息填写完整，方便维护者核对与采纳。
+  - type: input
+    id: page
+    attributes:
+      label: 涉及页面
+      description: 请填写页面标题与链接（或文档路径）
+      placeholder: 例如：校园卡 https://wiki.quters.top/start/newstudent/campus-card （docs/start/newstudent/campus-card.md）
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 当前内容
+      description: 请粘贴需要修改的原文片段，便于快速定位
+      placeholder: 当前文档中写的原文……
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 修订建议
+      description: 请说明应当改成什么，以及修改理由
+      placeholder: 建议修改为……理由是……
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: 参考资料
+      description: 相关来源、截图或官方通知链接（如有）
+    validations:
+      required: false
+  - type: input
+    id: contact
+    attributes:
+      label: 联系方式（可选）
+      description: GitHub 用户名、QQ 或邮箱，便于进一步沟通
+      placeholder: 例如：@yourname / 123456789
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认事项
+      options:
+        - label: 我确认提交的信息不包含他人隐私或未经允许的个人信息
+          required: true
+        - label: 我已搜索过现有 issue，未发现重复
+          required: true

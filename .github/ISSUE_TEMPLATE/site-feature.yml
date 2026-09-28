@@ -1,0 +1,66 @@
+name: 网站功能建议
+description: 对站点功能、交互体验或样式提出新增或改进建议
+title: "[功能建议] "
+labels: ["功能建议"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您为青理 WiKi 提出功能建议！请描述清楚使用场景，便于判断可行性与优先级。
+  - type: dropdown
+    id: category
+    attributes:
+      label: 建议类型
+      options:
+        - 新增功能
+        - 体验优化
+        - 样式与布局
+        - 性能
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 您在什么情况下需要这个功能？解决了什么问题？
+      placeholder: 当我……的时候，希望能……
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案
+      description: 您期望的功能表现或交互方式
+      placeholder: 希望可以……
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案（可选）
+      description: 是否考虑过其他实现方式或替代做法
+    validations:
+      required: false
+  - type: input
+    id: pages
+    attributes:
+      label: 涉及页面（可选）
+      description: 该功能相关的页面链接
+      placeholder: 例如：https://wiki.quters.top/map
+    validations:
+      required: false
+  - type: textarea
+    id: media
+    attributes:
+      label: 补充说明（可选）
+      description: 截图、参考站点或其他补充信息
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认事项
+      options:
+        - label: 我已搜索过现有 issue，未发现重复
+          required: true
