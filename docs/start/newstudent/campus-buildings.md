@@ -3,6 +3,9 @@ top: 2
 contributors:
   - name: 22Milan33
     avatar: https://pic1.imgdb.cn/i/0343ugLQsM4mN4IdcZ6Ayi.webp
+  - name: Selenophilia-lianyue
+    avatar: https://pic1.imgdb.cn/i/034WWAhU31phpPQO3VbuJJ.webp
+
 ---
 
 # 学校建筑设施

@@ -73,7 +73,14 @@ const contributorMeta = [
     links: [
       { text: 'GitHub', url: 'https://github.com/CXZ-cxz-cell' },
     ],
-  }
+  },
+  {
+    name: 'Selenophilia-lianyue',
+    tags: [],
+    links: [
+      { text: 'GitHub', url: 'https://github.com/Selenophilia-lianyue' },
+    ],
+  },
 ]
 
 const contributors = contributorMeta.map((item) => {
