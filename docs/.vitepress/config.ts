@@ -1,4 +1,5 @@
 import { defineConfig, type DefaultTheme } from 'vitepress'
+import { createLogger } from 'vite'
 import { readdirSync, readFileSync, statSync } from 'fs'
 import { resolve, extname, dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -9,6 +10,15 @@ import { flinkBlockPlugin } from './plugins/flink-block'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const docsRoot = resolve(__dirname, '..')
 const startRoot = resolve(docsRoot, 'start')
+
+// twikoo 预打包产物内含运行时拼接路径的动态 import（按需加载语言分片），
+// Vite 无法静态分析会刷屏告警。本站使用 zh-CN，该分支不会触发，直接静音这条噪音。
+const logger = createLogger()
+const baseWarn = logger.warn.bind(logger)
+logger.warn = (msg, options) => {
+  if (msg.includes('The above dynamic import cannot be analyzed by Vite') && msg.includes('twikoo')) return
+  baseWarn(msg, options)
+}
 
 // ---- 侧边栏自动生成 ----
 // 分组名称：文件夹 -> 中文名。缺少映射会在生成时报错，提醒补充。
@@ -289,6 +299,7 @@ export default defineConfig({
   lastUpdated: true,
   cleanUrls: true,
   vite: {
+    customLogger: logger,
     envDir: resolve(docsRoot, '..'),
     plugins: [sidebarWatchPlugin()],
     build: {

@@ -162,8 +162,166 @@ function migrateDetailedSearchDefault() {
   localStorage.setItem(migrationKey, 'true')
 }
 
+// ---- 搜索跳转后高亮搜索词 ----
+const HIGHLIGHT_HOLD = 3000
+const HIGHLIGHT_FADE = 1000
+const HIGHLIGHT_TIMEOUT = 3000
+
+let highlightToken = 0
+let highlightTimer = null
+
+function normalizePath(path) {
+  return path.replace(/index\.html$/, '').replace(/\/+$/, '')
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function getDocRoot() {
+  const docs = document.querySelectorAll('.vp-doc')
+  for (const doc of docs) {
+    if (!doc.closest('.VPLocalSearchBox')) return doc
+  }
+  return null
+}
+
+function unwrapHighlights() {
+  if (highlightTimer) {
+    clearTimeout(highlightTimer)
+    highlightTimer = null
+  }
+  document.querySelectorAll('mark.search-term-highlight').forEach((mark) => {
+    const parent = mark.parentNode
+    if (!parent) return
+    parent.replaceChild(document.createTextNode(mark.textContent || ''), mark)
+    parent.normalize()
+  })
+}
+
+function wrapMatches(root, terms) {
+  const marks = []
+  const valid = terms.filter(Boolean).sort((a, b) => b.length - a.length)
+  if (!valid.length) return marks
+  const pattern = new RegExp(valid.map(escapeRegExp).join('|'), 'gi')
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT
+      const parent = node.parentElement
+      if (!parent) return NodeFilter.FILTER_REJECT
+      if (['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'MARK'].includes(parent.tagName)) {
+        return NodeFilter.FILTER_REJECT
+      }
+      if (parent.closest('.search-term-highlight, .word-count, .img-caption, .header-anchor')) {
+        return NodeFilter.FILTER_REJECT
+      }
+      return NodeFilter.FILTER_ACCEPT
+    },
+  })
+  const nodes = []
+  while (walker.nextNode()) nodes.push(walker.currentNode)
+
+  for (const node of nodes) {
+    const text = node.nodeValue
+    pattern.lastIndex = 0
+    if (!pattern.test(text)) continue
+    pattern.lastIndex = 0
+    const frag = document.createDocumentFragment()
+    let last = 0
+    let match
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)))
+      const mark = document.createElement('mark')
+      mark.className = 'search-term-highlight'
+      mark.textContent = match[0]
+      frag.appendChild(mark)
+      marks.push(mark)
+      last = match.index + match[0].length
+      if (match[0].length === 0) pattern.lastIndex++
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)))
+    node.parentNode.replaceChild(frag, node)
+  }
+  return marks
+}
+
+function applyHighlight(query, hash) {
+  unwrapHighlights()
+  const doc = getDocRoot()
+  if (!doc) return
+  const terms = query.split(/\s+/).filter(Boolean)
+  const marks = wrapMatches(doc, terms)
+  if (!marks.length) return
+  if (!hash) {
+    marks[0].scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
+  highlightTimer = setTimeout(() => {
+    marks.forEach((mark) => mark.classList.add('search-term-fade'))
+    highlightTimer = setTimeout(unwrapHighlights, HIGHLIGHT_FADE)
+  }, HIGHLIGHT_HOLD)
+}
+
+function getSearchQuery() {
+  const input = document.querySelector('.VPLocalSearchBox .search-input')
+  let query = (input && input.value) || sessionStorage.getItem('vitepress:local-search-filter') || ''
+  try {
+    const parsed = JSON.parse(query)
+    if (typeof parsed === 'string') query = parsed
+  } catch {}
+  return query.trim()
+}
+
+function startHighlight(href) {
+  const query = getSearchQuery()
+  if (!query || !href) return
+
+  let target
+  try {
+    target = new URL(href, location.origin)
+  } catch {
+    return
+  }
+  const targetPath = normalizePath(target.pathname)
+  const hash = target.hash
+  const token = ++highlightToken
+  const startedAt = Date.now()
+  const lowerTerms = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const samePath = normalizePath(location.pathname) === targetPath
+  const initialDoc = getDocRoot()
+
+  const tick = () => {
+    if (token !== highlightToken) return
+    const doc = getDocRoot()
+    const arrived = normalizePath(location.pathname) === targetPath
+    const swapped = samePath || doc !== initialDoc
+    const text = doc && doc.textContent ? doc.textContent.toLowerCase() : ''
+    const ready = arrived && swapped && doc && lowerTerms.some((term) => text.includes(term))
+    if (!ready && Date.now() - startedAt < HIGHLIGHT_TIMEOUT) {
+      setTimeout(tick, 60)
+      return
+    }
+    if (!doc) return
+    applyHighlight(query, hash)
+  }
+  setTimeout(tick, 0)
+}
+
+function onSearchResultClick(e) {
+  const link = e.target.closest && e.target.closest('.VPLocalSearchBox a.result')
+  if (link) startHighlight(link.getAttribute('href'))
+}
+
+// 键盘回车选中搜索结果时不会触发 click，这里补上。
+function onSearchResultKeydown(e) {
+  if (e.key !== 'Enter' || e.isComposing) return
+  const selected = document.querySelector('.VPLocalSearchBox a.result.selected')
+  if (selected) startHighlight(selected.getAttribute('href'))
+}
+
 onMounted(() => {
   document.addEventListener('click', onDocumentClick)
+  document.addEventListener('click', onSearchResultClick, true)
+  document.addEventListener('keydown', onSearchResultKeydown, true)
   document.addEventListener('keydown', onKeydown)
   migrateDetailedSearchDefault()
   warmupLocalSearch()
@@ -171,7 +329,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', onDocumentClick)
+  document.removeEventListener('click', onSearchResultClick, true)
+  document.removeEventListener('keydown', onSearchResultKeydown, true)
   document.removeEventListener('keydown', onKeydown)
+  unwrapHighlights()
   document.body.style.overflow = ''
 })
 </script>

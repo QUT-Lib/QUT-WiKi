@@ -69,6 +69,29 @@ body::before {
   margin-top: 6px;
 }
 
+mark.search-term-highlight {
+  background-color: #ffe45c;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: background-color 1s ease;
+}
+
+mark.search-term-highlight.search-term-fade {
+  background-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  mark.search-term-highlight {
+    transition: none;
+  }
+}
+
+.dark mark.search-term-highlight {
+  background-color: #b8860b;
+  color: #fff;
+}
+
 .VPFooter.has-sidebar {
   display: block !important;
 }
