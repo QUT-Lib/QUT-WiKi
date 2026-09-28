@@ -8,4 +8,4 @@ top: 2
 
 QQ 群: 752307273
 
-![QQ群二维码](https://pic1.imgdb.cn/i/033uzqpgLtetzZslumC2H3.webp)
+![QQ群二维码](https://pic1.imgdb.cn/i/034WocAQ0yYI8uc6DGLvQF.webp)
