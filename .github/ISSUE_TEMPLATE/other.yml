@@ -1,0 +1,32 @@
+name: 其他建议
+description: 不属于文章修订或网站功能的其他建议、疑问或反馈
+title: "[其他] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您对青理 WiKi 的关注！请尽量把情况描述清楚，方便维护者理解与跟进。
+  - type: textarea
+    id: content
+    attributes:
+      label: 建议 / 反馈内容
+      description: 请描述您的想法、疑问或反馈
+      placeholder: 我想……
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: 联系方式（可选）
+      description: GitHub 用户名、QQ 或邮箱，便于进一步沟通
+      placeholder: 例如：@yourname / 123456789
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认事项
+      options:
+        - label: 我已搜索过现有 issue，未发现重复
+          required: true
