@@ -83,8 +83,21 @@ const contributorMeta = [
   },
 ]
 
+function findMapping(name) {
+  if (!name) return {}
+  const direct = contributorsMapping[name]
+  if (direct) return direct
+  const lower = name.toLowerCase()
+  for (const [key, val] of Object.entries(contributorsMapping)) {
+    const mappedGithub = typeof val === 'object' && val !== null ? val.github : val
+    if (mappedGithub && String(mappedGithub).toLowerCase() === lower) return val
+  }
+  return {}
+}
+
 const contributors = contributorMeta.map((item) => {
-  const mapped = contributorsMapping[item.name] || {}
+  const raw = findMapping(item.name)
+  const mapped = raw && typeof raw === 'object' ? raw : { github: raw }
   const github = mapped.github || item.github
   return {
     ...item,
