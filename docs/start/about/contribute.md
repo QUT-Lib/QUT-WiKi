@@ -39,7 +39,7 @@ git fetch upstream
 ```
 
 ::: warning 分支说明
-本站 `main` 是受保护的主分支，不直接接收普通贡献 PR。日常文档贡献请提交到源仓库的 `contribute` 分支，维护者审核后再择机合并到 `main`。
+本站 `contribute` 是日常贡献分支，所有文档改动请提交到源仓库的 `contribute` 分支。`main` 与 `contribute` 内容保持一致，仅作为镜像分支，不接收普通贡献 PR。
 
 如果你的 Fork 仓库里没有 `contribute` 分支，这是正常情况。你需要先从源仓库拉取 `upstream/contribute`，在本地创建自己的 `contribute` 分支，然后推送到自己的 Fork 仓库。
 :::
@@ -185,7 +185,7 @@ git push origin contribute
 - compare repository：你的 Fork 仓库 `YOUR_USERNAME/QUT-WiKi`
 - compare 分支：你的 `contribute` 分支
 
-请不要把 PR 直接提交到 `main`。`main` 受保护，且 `contribute` 的最新改动不会立即并入 `main`。
+请不要把 PR 直接提交到 `main`。`main` 仅作为镜像分支，日常贡献统一提交到 `contribute`。
 
 ---
 
