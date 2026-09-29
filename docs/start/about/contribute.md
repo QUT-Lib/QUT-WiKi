@@ -35,11 +35,11 @@ cd QUT-WiKi
 
 # 添加源仓库为 upstream，后续用于同步官方分支
 git remote add upstream https://github.com/QUT-Lib/QUT-WiKi.git
-git fetch upstream
+git fetch upstream contribute
 ```
 
 ::: warning 分支说明
-本站 `contribute` 是日常贡献分支，所有文档改动请提交到源仓库的 `contribute` 分支。`main` 与 `contribute` 内容保持一致，仅作为镜像分支，不接收普通贡献 PR。
+本站使用 `contribute` 分支作为主分支，所有文档改动请提交到源仓库的 `contribute` 分支。
 
 如果你的 Fork 仓库里没有 `contribute` 分支，这是正常情况。你需要先从源仓库拉取 `upstream/contribute`，在本地创建自己的 `contribute` 分支，然后推送到自己的 Fork 仓库。
 :::
@@ -47,7 +47,7 @@ git fetch upstream
 创建并推送自己的 `contribute` 分支：
 
 ```bash
-git fetch upstream
+git fetch upstream contribute
 git checkout -b contribute upstream/contribute
 git push origin contribute
 ```
@@ -134,8 +134,8 @@ git commit --amend --reset-author
 # 切换到自己的 contribute 分支
 git checkout contribute
 
-# 同步源仓库改动
-git fetch upstream
+# 同步源仓库改动（只需同步 contribute 这一个分支）
+git fetch upstream contribute
 git merge upstream/contribute
 
 # 正常修改、提交并推送到自己的 Fork 仓库 contribute 分支
@@ -145,7 +145,7 @@ git push origin contribute
 ```
 
 ::: warning 为什么不能只 fetch？
-`git fetch upstream` 只会把源仓库的最新提交下载到本地的 `upstream/contribute` 这个"只读引用"，并不会改动你的本地 `contribute` 分支，更不会改动你的 Fork 仓库。只有再执行 `git merge upstream/contribute`，本地分支才会真正跟上源仓库的最新内容。否则你很可能在过时的基础上提交，PR 里出现冲突。
+`git fetch upstream contribute` 只会把源仓库 `contribute` 分支的最新提交下载到本地的 `upstream/contribute` 这个"只读引用"，并不会改动你的本地 `contribute` 分支，更不会改动你的 Fork 仓库。只有再执行 `git merge upstream/contribute`，本地分支才会真正跟上源仓库的最新内容。否则你很可能在过时的基础上提交，PR 里出现冲突。
 
 等价写法：在 `contribute` 分支上直接执行 `git pull upstream contribute`（fetch + merge 一步完成）。
 
@@ -173,7 +173,7 @@ git rebase --continue
 如果本地还没有 `contribute` 分支，请先执行：
 
 ```bash
-git fetch upstream
+git fetch upstream contribute
 git checkout -b contribute upstream/contribute
 git push origin contribute
 ```
@@ -185,13 +185,13 @@ git push origin contribute
 - compare repository：你的 Fork 仓库 `YOUR_USERNAME/QUT-WiKi`
 - compare 分支：你的 `contribute` 分支
 
-请不要把 PR 直接提交到 `main`。`main` 仅作为镜像分支，日常贡献统一提交到 `contribute`。
+本站只有一个主分支 `contribute`，所有贡献统一提交到该分支即可。
 
 ---
 
 ### 六、注意事项
 
-- 每次贡献前先同步上游：`git checkout contribute && git fetch upstream && git merge upstream/contribute`，确保本地 `contribute` 分支基于最新的 `upstream/contribute`（仅 fetch 不会更新本地分支，详见上文）
+- 每次贡献前先同步上游：`git checkout contribute && git fetch upstream contribute && git merge upstream/contribute`，确保本地 `contribute` 分支基于最新的 `upstream/contribute`（仅 fetch 不会更新本地分支，详见上文）
 - 一 PR 一事，不混入无关修改
 - 引用资料注明出处，个人信息须经本人同意
 - 不要在图片说明、链接或表格中嵌入脚本、事件属性或不受信任的远程资源
@@ -207,9 +207,9 @@ git push origin contribute
 
 ###### 目标分支
 
-- [ ] 本 PR 的 base 分支是源仓库 `QUT-Lib/QUT-WiKi` 的 `contribute` 分支（不是 `main`）
+- [ ] 本 PR 的 base 分支是源仓库 `QUT-Lib/QUT-WiKi` 的 `contribute` 分支
 - [ ] 本 PR 来自你 Fork 仓库的 `contribute` 分支，且已同步最新的 `upstream/contribute`
-- [ ] 本地已执行 `git fetch upstream && git merge upstream/contribute`（或 `git pull --rebase upstream contribute`）
+- [ ] 本地已执行 `git fetch upstream contribute && git merge upstream/contribute`（或 `git pull --rebase upstream contribute`）
 
 ###### 提交信息规范
 
