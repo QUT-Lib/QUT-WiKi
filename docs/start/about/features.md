@@ -494,6 +494,8 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 ./build.ps1
 ```
 
-流程：生成贡献者数据 → `npm run build` → 清理 5173 端口旧进程 → `npm run dev`
+流程：生成贡献者数据 → `npm run build` → 自动选取一个未被占用的随机端口 → 清理该端口旧进程 → `npm run dev`
+
+端口由 `docs/.vitepress/scripts/free-port.mjs` 在 5000–60000 范围内随机探测可用端口，避免固定在某个可能被系统保留或占用的端口上。启动后控制台会打印实际监听地址，也可用 `./build.ps1 -Port 5173` 指定端口。
 
 `npm run build:fresh` 会忽略本地 `docs/.http_cache/` 的有效期并重新请求同步服务，但服务端仍按自身缓存和限流策略处理，不提供强制绕过缓存的参数。
