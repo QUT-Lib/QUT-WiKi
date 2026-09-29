@@ -345,5 +345,5 @@ top: 3
     - 精简 PR 模板，仅保留变更说明与截图，提交前检查清单移入《参与编写》文档
     - 部署改用专用受限密钥，服务器端通过 `rrsync` 限定可写目录
   - **修订**
-    - 《参与编写》分支说明更新，明确 `contribute` 为日常贡献分支、`main` 为镜像分支
-    - 统一 `main` 与 `contribute` 分支内容
+    - 分支模型调整：`contribute` 设为默认分支并作为唯一主分支，不再维护 `main`
+    - 同步上游只需拉取 `contribute` 单个分支（`git fetch upstream contribute`）
