@@ -1,6 +1,6 @@
 <!--
 感谢您向青理 WiKi 提交贡献！
-目标分支请务必选择源仓库 QUT-Lib/QUT-WiKi 的 contribute 分支（不要直接向 main 提交）。
+目标分支请选择源仓库 QUT-Lib/QUT-WiKi 的 contribute 分支。
 提交信息需符合「中文前缀: 详细说明」规范，CI 会自动校验。
 完整检查清单见：https://wiki.quters.top/start/about/contribute
 -->

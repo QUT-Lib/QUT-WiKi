@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - contribute
-      - main
     types: [opened, synchronize, reopened, edited]
 
 permissions:
@@ -23,17 +22,12 @@ jobs:
       - name: 校验目标分支
         env:
           BASE_REF: ${{ github.base_ref }}
-          HEAD_REF: ${{ github.head_ref }}
         run: |
           if [ "$BASE_REF" = "contribute" ]; then
             echo "::notice::目标分支为 contribute，符合规范。"
             exit 0
           fi
-          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "contribute" ]; then
-            echo "::notice::本次为 contribute → main 的发布合并，允许通过。"
-            exit 0
-          fi
-          echo "::error::目标分支为 $BASE_REF，不符合规范。日常文档贡献请将 base 分支设置为 QUT-Lib/QUT-WiKi 的 contribute 分支；main 为受保护分支，不接收普通贡献 PR。"
+          echo "::error::目标分支为 $BASE_REF，不符合规范。本站仅有 contribute 一个主分支，请将 base 分支设置为 QUT-Lib/QUT-WiKi 的 contribute 分支。"
           exit 1
 
       - name: 校验提交信息
