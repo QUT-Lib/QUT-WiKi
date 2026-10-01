@@ -278,7 +278,75 @@ contributors:
 
 ---
 
-## 六、Twikoo 评论
+## 六、页面历史
+
+普通文档页底部会自动显示“页面历史”，用于查看当前文章对应的 Git 提交记录。
+
+### 展示内容
+
+页面历史位于评论区之后，默认收起。点击“查看完整历史”后，可以看到每次提交的：
+
+- 短哈希值，链接到 GitHub 对应提交页面
+- 提交信息
+- 编辑人，链接到其 GitHub 主页
+- 编辑时间，格式为 `2026年10月1日 22:38`
+
+示例：
+
+```text
+8dc8cc1 修订: 医疗保险的原文件名 LucasAndrew 于 2026年10月1日 22:38
+```
+
+“页面历史”本身是二级标题，会自动出现在桌面端右侧的本页目录中。页面历史展开区域使用内嵌折叠卡片，提交哈希值使用独立块样式展示。
+
+### 数据生成
+
+构建前由 `docs/.vitepress/scripts/gen-contributors.mjs` 执行 Git 查询，为每篇 Markdown 文章生成对应的历史数据：
+
+```text
+docs/.vitepress/history.json
+```
+
+脚本使用 `git log --follow`，因此文章经过文件名修改或路径迁移后，仍会继续追踪原文件的提交历史。该文件和 `contributors.json` 一样属于构建产物，已加入 `.gitignore`，不会提交到仓库。
+
+每次执行以下命令时都会重新生成：
+
+```bash
+npm run dev
+npm run build
+```
+
+### 编辑人映射
+
+编辑人的 Git 提交名称会通过 `docs/.vitepress/contributors-mapping.json` 映射到 GitHub 用户名和头像。匹配支持：
+
+- Git 提交名称
+- GitHub noreply 邮箱中的用户名
+- 映射项中的 GitHub 用户名
+
+例如：
+
+```json
+{
+  "LucasAndrew": {
+    "github": "LucasAndrew0120",
+    "avatar": "https://example.com/avatar.png"
+  }
+}
+```
+
+如果找不到映射，仍会显示 Git 提交中的原始编辑人名称，但不会生成 GitHub 主页链接。
+
+关联文件：
+
+- `docs/.vitepress/scripts/gen-contributors.mjs`——生成贡献者和页面历史数据
+- `docs/.vitepress/history.json`——构建时生成的页面历史数据
+- `docs/.vitepress/theme/components/GitHistory.vue`——页面历史前端组件
+- `docs/.vitepress/contributors-mapping.json`——编辑人 GitHub 映射
+
+---
+
+## 七、Twikoo 评论
 
 普通文档页底部使用 [Twikoo](https://twikoo.js.org/) 提供评论功能。首页和 `layout: page` 的页面不会显示评论区。
 
@@ -302,7 +370,7 @@ Twikoo 客户端采用动态加载，不参与服务端渲染，也不会进入�
 
 ---
 
-## 七、美食评分卡片
+## 八、美食评分卡片
 
 `<FoodCards>` 将美食条目渲染为「封面 + 名称 + 平均分 + 星级选择器 + 评价按钮」的卡片，点「评价」弹出详情窗口，内含地点、人均、推荐、多图、聚合评分与该店铺的 Twikoo 评论。评分复用 Twikoo 存储：提交评论时自动在正文前拼上 `[rating:n]` 标记，前端解析后统计平均分，评论列表中的标记会渲染成星级徽章。
 
@@ -377,7 +445,7 @@ Twikoo 客户端采用动态加载，不参与服务端渲染，也不会进入�
 
 ---
 
-## 八、Frontmatter 扩展配置
+## 九、Frontmatter 扩展配置
 
 QUTWiKi 在 VitePress 原生 frontmatter 之外新增以下配置项：
 
@@ -398,7 +466,7 @@ contributors:
 
 ---
 
-## 九、全站公告横条
+## 十、全站公告横条
 
 网站支持在顶部导航栏下方显示一条全站公告，适合发布维护通知、重要提醒或临时消息。公告会显示在所有页面，并自动适配桌面端和移动端。
 
@@ -422,7 +490,7 @@ export const siteAnnouncement = {
 
 ---
 
-## 十、图床资源批量下载与本地化
+## 十一、图床资源批量下载与本地化
 
 站点图片目前托管在第三方图床（`pic1.imgdb.cn`、`pic.imgdb.cn`）。若图床失效、需要整体备份或迁移到自建存储，可用 `docs/scripts/images.mjs` 一键抓取并精确替换链接。
 
@@ -486,7 +554,7 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 
 ---
 
-## 十一、构建脚本
+## 十二、构建脚本
 
 项目根目录的 `build.ps1` 一键构建并启动开发服务器：
 

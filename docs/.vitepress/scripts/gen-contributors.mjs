@@ -8,6 +8,7 @@ const __dirname = dirname(__filename)
 const repoRoot = resolve(__dirname, '..', '..', '..')
 const docsDir = resolve(repoRoot, 'docs')
 const outPath = resolve(__dirname, '..', 'contributors.json')
+const historyOutPath = resolve(__dirname, '..', 'history.json')
 const mappingPath = resolve(__dirname, '..', 'contributors-mapping.json')
 
 function walkMdFiles(dir, base) {
@@ -93,6 +94,52 @@ function getContributors(relPath) {
           avatar,
           commits: c.total,
         }
+      })
+  } catch {
+    return []
+  }
+}
+
+// 解析 COMMIT_SEP 分隔的 git log，得到每篇文章的提交历史（含跨改名追踪）。
+function getHistory(relPath) {
+  try {
+    const sep = 'COMMIT_SEP\x1f'
+    const output = execFileSync(
+      'git',
+      ['log', '--follow', '--format=%h%x1f%an%x1f%ae%x1f%aI%x1f%s%x1f' + sep, '--', relPath],
+      { encoding: 'utf-8', cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 }
+    )
+    return output
+      .split(sep)
+      .map(chunk => chunk.replace(/^\r?\n/, '').trimEnd())
+      .filter(Boolean)
+      .map((chunk) => {
+        const [hash, author, email, date, message] = chunk.split('\x1f')
+        let github = null
+        let avatar
+        const noreply = extractGitHubUsername(email || '')
+        if (noreply) {
+          github = noreply
+        } else {
+          const val = mapping[email] || mapping[author]
+          if (typeof val === 'object' && val !== null) {
+            github = val.github
+            avatar = val.avatar
+          } else if (val) {
+            github = val
+          } else {
+            const lower = (author || '').toLowerCase()
+            for (const item of Object.values(mapping)) {
+              const mappedGithub = typeof item === 'object' && item !== null ? item.github : item
+              if (mappedGithub && String(mappedGithub).toLowerCase() === lower) {
+                github = String(mappedGithub)
+                if (typeof item === 'object' && item !== null) avatar = item.avatar
+                break
+              }
+            }
+          }
+        }
+        return { hash, message, author, github, avatar, date }
       })
   } catch {
     return []
@@ -262,6 +309,7 @@ function resolveGitHub(emails, name) {
 function main() {
   if (!existsSync(resolve(repoRoot, '.git'))) {
     writeFileSync(outPath, '{}')
+    writeFileSync(historyOutPath, '{}')
     console.log('No git repository found, generated empty contributors data')
     return
   }
@@ -270,6 +318,7 @@ function main() {
   mapping = loadMapping()
   const files = walkMdFiles(docsDir, docsDir)
   const result = {}
+  const history = {}
 
   for (const file of files) {
     const gitPath = `${docsRelToRoot}/${file}`
@@ -280,10 +329,16 @@ function main() {
     if (contributors.length > 0) {
       result[file] = contributors.map(({ email, ...publicContributor }) => publicContributor)
     }
+    const commits = getHistory(gitPath)
+    if (commits.length > 0) {
+      history[file] = commits
+    }
   }
 
   writeFileSync(outPath, JSON.stringify(result, null, 2))
+  writeFileSync(historyOutPath, JSON.stringify(history, null, 2))
   console.log(`Generated contributors data for ${Object.keys(result).length} files`)
+  console.log(`Generated git history data for ${Object.keys(history).length} files`)
 }
 
 main()

@@ -4,6 +4,7 @@ node_modules
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/.vitepress/contributors.json
+docs/.vitepress/history.json
 docs/.http_cache
 .DS_Store
 *.log

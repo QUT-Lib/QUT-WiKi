@@ -3,6 +3,7 @@ import DefaultTheme from 'vitepress/theme'
 import { useData, useRoute } from 'vitepress'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Contributors from './components/Contributors.vue'
+import GitHistory from './components/GitHistory.vue'
 import TwikooComments from './components/TwikooComments.vue'
 import SiteStats from './components/SiteStats.vue'
 
@@ -352,6 +353,7 @@ onUnmounted(() => {
       </template>
       <template #doc-after>
         <TwikooComments v-if="commentsEnabled" :key="route.path" :env-id="twikooEnvId" />
+        <GitHistory />
       </template>
     </DefaultTheme.Layout>
   </div>

@@ -11,6 +11,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const docsRoot = resolve(__dirname, '..')
 const startRoot = resolve(docsRoot, 'start')
 
+let gitHistoryData: Record<string, unknown[]> = {}
+try {
+  gitHistoryData = JSON.parse(readFileSync(resolve(__dirname, 'history.json'), 'utf-8'))
+} catch {
+  // history.json is generated before dev/build by gen-contributors.mjs.
+}
+
 // twikoo 预打包产物内含运行时拼接路径的动态 import（按需加载语言分片），
 // Vite 无法静态分析会刷屏告警。本站使用 zh-CN，该分支不会触发，直接静音这条噪音。
 const logger = createLogger()
@@ -305,6 +312,20 @@ export default defineConfig({
     build: {
       chunkSizeWarningLimit: 1100,
     },
+  },
+  transformPageData(pageData) {
+    const history = gitHistoryData[pageData.relativePath]
+    if (!Array.isArray(history) || history.length === 0) return
+
+    const headers = pageData.headers || []
+    if (headers.some(header => header.slug === 'git-history-title')) return
+
+    return {
+      headers: [
+        ...headers,
+        { level: 2, title: '页面历史', slug: 'git-history-title' },
+      ],
+    }
   },
   markdown: {
     config: (md) => {

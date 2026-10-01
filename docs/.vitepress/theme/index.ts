@@ -6,6 +6,7 @@ import Flink from './components/Flink.vue'
 import Flinks from './components/Flinks.vue'
 import MapView from './components/MapView.vue'
 import FoodCards from './components/FoodCards.vue'
+import GitHistory from './components/GitHistory.vue'
 import './style.css'
 
 export default {
@@ -19,5 +20,6 @@ export default {
     app.component('Flinks', Flinks)
     app.component('MapView', MapView)
     app.component('FoodCards', FoodCards)
+    app.component('GitHistory', GitHistory)
   },
 }
