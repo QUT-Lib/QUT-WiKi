@@ -359,6 +359,10 @@ mark.search-term-highlight.search-term-fade {
 }
 
 @media (min-width: 960px) {
+  .VPDoc .aside-container {
+    padding-bottom: 160px;
+  }
+
   .page-no-outline .VPContent {
     padding-left: 0 !important;
     padding-right: 0 !important;
