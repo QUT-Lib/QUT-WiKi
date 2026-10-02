@@ -51,6 +51,24 @@ Gitea 每 10 分钟从 GitHub 同步一次，国内访问更快。
 `git remote set-url upstream https://gitea.quters.top/QUT-Lib/QUT-WiKi.git`
 
 这样 git fetch upstream 就走 Gitea，速度更快；origin 仍然是你自己的 GitHub Fork。
+
+如果你希望同时保留 GitHub 官方仓库和 Gitea 镜像两个上游，也可以额外添加一个只读的 Gitea 远程仓库：
+
+```bash
+# 添加 Gitea 镜像，取名 Gitea
+git remote add Gitea https://gitea.quters.top/QUT-Lib/QUT-WiKi.git
+
+# 禁用该远程的推送，确保它只能拉取
+git remote set-url --push Gitea DISABLE
+```
+
+之后即可从 Gitea 拉取：
+
+```bash
+git fetch Gitea contribute
+```
+
+由于推送地址被设为 `DISABLE`，对 Gitea 执行 `git push` 会直接失败，这是有意为之——Gitea 是只读镜像，推送请始终使用你自己的 GitHub Fork（`origin`）。
 :::
 
 ::: warning 分支说明
