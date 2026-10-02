@@ -33,10 +33,25 @@ npm config set registry https://registry.npmmirror.com
 git clone https://github.com/YOUR_USERNAME/QUT-WiKi.git
 cd QUT-WiKi
 
+
 # 添加源仓库为 upstream，后续用于同步官方分支
 git remote add upstream https://github.com/QUT-Lib/QUT-WiKi.git
 git fetch upstream contribute
 ```
+
+::: tip
+我们已自建 Gitea 托管平台，国内用户可直连拉取：
+[https://gitea.quters.top/QUT-Lib/QUT-WiKi](https://gitea.quters.top/QUT-Lib/QUT-WiKi)
+
+Gitea 每 10 分钟从 GitHub 同步一次，国内访问更快。
+注意：Gitea 是只读镜像，不能推送，推送仍需使用你自己的 GitHub Fork。
+
+国内用户如果访问 GitHub 较慢，可以把 upstream 的地址换成 Gitea 镜像：
+
+`git remote set-url upstream https://gitea.quters.top/QUT-Lib/QUT-WiKi.git`
+
+这样 git fetch upstream 就走 Gitea，速度更快；origin 仍然是你自己的 GitHub Fork。
+:::
 
 ::: warning 分支说明
 本站使用 `contribute` 分支作为主分支，所有文档改动请提交到源仓库的 `contribute` 分支。
