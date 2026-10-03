@@ -35,6 +35,8 @@ jobs:
         run: npm ci
 
       - name: 构建站点
+        env:
+          VITE_TWIKOO_ENV_ID: ${{ secrets.VITE_TWIKOO_ENV_ID }}
         run: npm run build
 
       - name: 准备 SSH 密钥
