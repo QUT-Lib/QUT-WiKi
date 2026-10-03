@@ -48,45 +48,100 @@ npm run dev       # 启动开发服务器 http://localhost:5173
 │
 └── docs/                       # VitePress 文档根目录
     ├── index.md                # 首页
+    ├── flink.md                # 友情链接
+    ├── map.md                  # 校园地图
     ├── public/
     │   ├── _headers            # 静态站安全响应头
-    │   └── _redirects          # 静态重定向规则
+    │   ├── _redirects          # 静态重定向规则
+    │   ├── BingSiteAuth.xml    # 必应站长验证
+    │   ├── images/             # 站点图片资源
+    │   └── map/                # 校园地图静态资源
+    ├── resources/              # 可供下载的文档与数据
+    │   ├── QUT-Organization.xlsx
+    │   └── 2025-2026学年学生社团主要负责人名单公示表.pdf
+    ├── scripts/                # 文档辅助脚本
+    │   ├── images.mjs          # 图片处理
+    │   └── sync-tencent-docs.mjs   # 腾讯文档同步
     │
     ├── .vitepress/             # VitePress 配置与主题
     │   ├── config.ts           # 站点配置
     │   ├── contributors-mapping.json
+    │   ├── contributors.json   # 贡献者数据
+    │   ├── history.json        # 提交历史数据
     │   ├── plugins/
     │   │   ├── flink-block.ts  # 友情链接块解析
     │   │   └── xlsx-table.ts   # XLSX 卡片渲染
     │   ├── scripts/
+    │   │   ├── build-fresh.mjs        # 全量构建
+    │   │   ├── free-port.mjs          # 端口释放
     │   │   └── gen-contributors.mjs   # 贡献者信息生成
     │   └── theme/
     │       ├── index.ts               # 主题入口
     │       ├── MyLayout.vue           # 自定义布局
     │       ├── style.css              # 自定义样式
+    │       ├── announcement.ts        # 公告配置
     │       └── components/
+    │           ├── AppCards.vue       # 应用卡片组件
     │           ├── Contributors.vue   # 贡献者组件
-    │           └── Gallery.vue        # 图片集组件
+    │           ├── Flink.vue          # 友情链接组件
+    │           ├── Flinks.vue         # 友情链接列表组件
+    │           ├── FoodCards.vue      # 美食卡片组件
+    │           ├── Gallery.vue        # 图片集组件
+    │           ├── GitHistory.vue     # 提交历史组件
+    │           ├── MapView.vue        # 校园地图组件
+    │           ├── SiteStats.vue      # 站点统计组件
+    │           ├── TwikooComments.vue # 评论组件
+    │           ├── food-data.js       # 美食数据
+    │           ├── food-twikoo.js     # 美食评论配置
+    │           └── map-data.js        # 地图数据
     │
-    └── start/
+    └── start/                  # 文章目录
         ├── preface/
         │   └── introduction.md       # 前言 / 项目介绍
         ├── newstudent/               # 新生入学
-        │   ├── anti-fraud.md         # 防诈骗指南
-        │   ├── campus-buildings.md   # 校园建筑
-        │   ├── campus-card.md        # 校园卡
-        │   ├── campus-network.md     # 校园网
-        │   ├── military-assistant.md # 军训助手
-        │   └── transportation.md     # 交通出行
+        │   ├── 2026-teacher-phone.md      # 2026 教师联系方式
+        │   ├── admission-checklist.md     # 入学清单
+        │   ├── admission-resources.md     # 入学资源
+        │   ├── anti-fraud.md              # 防诈骗指南
+        │   ├── campus-buildings.md        # 校园建筑
+        │   ├── campus-card.md             # 校园卡
+        │   ├── campus-network.md          # 校园网
+        │   ├── military-assistant.md      # 军训助手
+        │   └── transportation.md          # 交通出行
         ├── campus-life/              # 校园生活
-        │   ├── academic-system.md    # 教务系统
-        │   ├── library-reservation.md# 图书馆预约
-        │   ├── smart-QUT.md          # 智慧学工系统
-        │   ├── tuition-fee.md        # 学费缴纳
-        │   └── utility-bill.md       # 水电费缴纳
+        │   ├── competition/          # 学科竞赛
+        │   │   ├── qut-racing.md          # 青理赛车
+        │   │   └── qut-robot.md           # 青理机器人
+        │   ├── daily-life/           # 日常生活
+        │   │   ├── campus-surroundings.md # 校园周边
+        │   │   ├── dormitory.md           # 宿舍
+        │   │   ├── food.md                # 美食
+        │   │   └── health-insurance.md    # 医保
+        │   ├── qut-organization/     # 校内组织
+        │   │   ├── club.md                # 社团
+        │   │   ├── interest-group.md      # 兴趣小组
+        │   │   ├── lab.md                 # 实验室
+        │   │   ├── postgraduate-union.md  # 研究生会
+        │   │   └── school-student&league-organizations.md  # 校学生会及社团组织
+        │   ├── study/                # 学习相关
+        │   │   ├── academic-system.md     # 教务系统
+        │   │   ├── change-major.md        # 转专业
+        │   │   ├── comprehensive-assessment.md # 综合评价
+        │   │   ├── further-education.md   # 升学深造
+        │   │   ├── learn-documents.md     # 学习文档
+        │   │   ├── library-reservation.md # 图书馆预约
+        │   │   └── schedule-calendar.md   # 校历
+        │   └── systems/              # 校园系统
+        │       ├── edu-email.md           # 教育邮箱
+        │       ├── smart-qut.md           # 智慧学工系统
+        │       ├── software.md            # 正版软件
+        │       ├── tuition-fee.md         # 学费缴纳
+        │       └── utility-bill.md        # 水电费缴纳
         └── about/                    # 关于 Wiki
             ├── changelog.md          # 更新日志
             ├── contribute.md         # 参与编写
+            ├── contributors.md       # 贡献者
+            ├── features.md           # 功能特性
             ├── join-us.md            # 加入我们
             └── todo.md               # 编写计划
 ```
