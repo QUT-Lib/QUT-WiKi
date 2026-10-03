@@ -1,6 +1,5 @@
 ---
 top: 8
-comments: false
 sidebarDrawer: true
 outline: false
 wordCount: false
