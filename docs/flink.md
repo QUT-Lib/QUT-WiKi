@@ -45,7 +45,7 @@ pageClass: flink-page
       avatar: https://pic1.imgdb.cn/i/034Bcfvcsb7jmd4RabMVIG.webp
       siteshot: https://pic1.imgdb.cn/i/034BcdOT3qatoGK7PLSnjp.webp
     - name: 南开Wiki
-      link: https://cure2004.github.io/NKUwiki/
+      link: https://freshnkuer.wiki/
       descr: 南开 Wiki -南开大学公益校园生活百科
       avatar: https://pic1.imgdb.cn/i/034JLxfrJIaOBytx5y8dI7.svg
       siteshot: https://pic1.imgdb.cn/i/034JLyk7o9jTTCrIU50dyv.webp
