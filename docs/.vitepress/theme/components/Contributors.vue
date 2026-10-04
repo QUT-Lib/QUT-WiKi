@@ -11,6 +11,18 @@ const contributors = computed(() => {
   return contributorsData[path] || []
 })
 
+// 在线编辑器地址（公开编辑模式）。如需更换部署地址，可用 VITE_EDITOR_URL 覆盖。
+const EDITOR_BASE = import.meta.env.VITE_EDITOR_URL || 'https://web-edit.quters.top'
+
+// 当前页在编辑器中的深链。VitePress 的 relativePath 相对 docs/（如 start/about/contribute.md），
+// 而编辑器内容根为 docs/start，故去掉开头的 start/ 前缀；仅可编辑目录内的页面显示按钮。
+const editUrl = computed(() => {
+  const rel = page.value?.relativePath
+  if (!rel || !rel.startsWith('start/')) return ''
+  const editorPath = rel.slice('start/'.length)
+  return `${EDITOR_BASE}/note/${editorPath.split('/').map(encodeURIComponent).join('/')}`
+})
+
 const lastUpdated = computed(() => {
   const ts = page.value?.lastUpdated
   if (!ts) return ''
@@ -50,7 +62,23 @@ function hue(name) {
 
 <template>
   <div v-if="contributors.length" class="contributors">
-    <h3 class="contributors-title">本文贡献者</h3>
+    <div class="contributors-head">
+      <h3 class="contributors-title">本文贡献者</h3>
+      <a
+        v-if="editUrl"
+        class="contributors-edit"
+        :href="editUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="在在线编辑器中打开本文"
+      >
+        <svg class="contributors-edit-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+        <span>在线编辑</span>
+      </a>
+    </div>
     <div class="contributors-row">
       <div class="contributors-list">
         <a
@@ -89,11 +117,44 @@ function hue(name) {
   border-top: 1px solid var(--vp-c-divider);
 }
 
+.contributors-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .contributors-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--vp-c-text-2);
-  margin: 0 0 10px;
+  margin: 0;
+}
+
+.contributors-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.contributors-edit:hover {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-bg-soft);
+}
+
+.contributors-edit-icon {
+  flex-shrink: 0;
 }
 
 .contributors-row {
