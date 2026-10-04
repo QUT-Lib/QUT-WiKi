@@ -276,6 +276,22 @@ docs: 补充参与编写说明
 
 ---
 
+## 通过在线编辑器
+
+::: info
+我们引入了自建的[webObsidian平台](https://github.com/xnohat/webobsidian)，对其项目做了适配修改，实现了在线的编辑，下面将教会大家如何使用
+:::
+
+1. 在 WiKi 每个页面的贡献者区域右侧，会有一个“**在线编辑**”的按钮，点击进入就是本页面的在线编辑器
+2. 你可以在左侧选择你要编辑的篇目，也可以自己新开文件夹和Markdown文件
+3. 注意: Markdown文件名应为英文，文件内的一级标题应为中文
+4. 当编辑结束后，在左下角可以找到Git提交的按钮，进入可以选择要提交的修改，提交类型和提交信息，如无特殊情况，请选择“提交并推送（创建 PR）”
+
+<Gallery>
+![在线编辑1](https://pic1.imgdb.cn/i/034aF9RwgqbOcrkVw6uVXW.webp)
+![在线编辑](https://pic1.imgdb.cn/i/034aFAdLYMRQgLLc6SA8S9.webp)  
+
+
 ## 通过**飞书**流程
 - 欢迎您使用 [**飞书**](https://ycnbhi79uv2d.feishu.cn/wiki/YrIOwlkXlidu4zkAeOjcMP7XnFg?from=from_copylink) 进行 [**QUTWiKi**](https://wiki.quters.top) 的编写工作。
 - 在左侧三栏有**序言，新生入学，校园生活**三个分区，您可以在其中修订文章或者新增篇目。
