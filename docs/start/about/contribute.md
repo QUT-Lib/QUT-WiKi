@@ -276,6 +276,30 @@ docs: 补充参与编写说明
 
 ---
 
+## 通过在线编辑器
+
+::: info
+我们引入了自建的[webObsidian平台](https://github.com/xnohat/webobsidian)，对其项目做了适配修改，实现了在线的编辑，下面将教会大家如何使用
+:::
+
+1. 在 WiKi 每个页面的贡献者区域右侧，会有一个“**在线编辑**”的按钮，点击进入就是本页面的在线编辑器
+2. 你可以在左侧选择你要编辑的篇目，也可以自己新开文件夹和Markdown文件
+3. 在上方的工具栏，你可以对文章进行一些格式操作；特别值得注意的是，你可以上传图片插入文章，上传后，稍作等待，文章中便会返回图床链接，其中`<Gallery>`标签也是可以使用的，其用法详见[**站点功能说明**](https://wiki.quters.top/start/about/features)
+4. 注意: Markdown文件名应为英文，文件内的一级标题应为中文
+5. 当编辑结束后，在左下角可以找到Git提交的按钮，进入可以选择要提交的修改，提交类型和提交信息，如无特殊情况，请选择“提交并推送（创建 PR）”
+6. 所有通过在线编辑平台提交的更改，都会进入仓库的 **web-edit** 分支，由站长**审核**后，并入 **contribute** 默认分支
+
+<Gallery>
+  
+![在线编辑1](https://pic1.imgdb.cn/i/034aF9RwgqbOcrkVw6uVXW.webp)
+![在线编辑2](https://pic1.imgdb.cn/i/034aFAdLYMRQgLLc6SA8S9.webp)  
+![在线编辑3](https://pic1.imgdb.cn/i/034aPOiCwMNNBbTQroScWL.webp)
+![在线编辑4](https://pic1.imgdb.cn/i/034aPSkOwytFF0lApiliap.webp)
+
+</Gallery>
+
+
+
 ## 通过**飞书**流程
 - 欢迎您使用 [**飞书**](https://ycnbhi79uv2d.feishu.cn/wiki/YrIOwlkXlidu4zkAeOjcMP7XnFg?from=from_copylink) 进行 [**QUTWiKi**](https://wiki.quters.top) 的编写工作。
 - 在左侧三栏有**序言，新生入学，校园生活**三个分区，您可以在其中修订文章或者新增篇目。

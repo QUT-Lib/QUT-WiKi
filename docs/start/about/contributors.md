@@ -251,6 +251,8 @@ const contributors = contributorMeta.map((item) => {
 
 校园地图功能参考了[**CQUMAPS**（重庆大学校园地图导航系统）](https://github.com/littlemana-bot/CQUMAPS)与[**CQU-openlib**（重庆大学资源共享计划）](https://github.com/INFO-studio/CQU-openlib)，页面布局、交互设计与配色方案借鉴自其开源代码（[cqu-openlib.cn/map](https://cqu-openlib.cn/map)），在此感谢两个项目的无私开源。
 
+在线编辑功能参考了[**南华大学**的Fork项目](https://github.com/hzxyayaya/USC-Wiki-Editor)，在此感谢[**南华大学 Wiki (USC Wiki)**](https://uscwiki.com/)项目组的无私开源
+
 ## 特别鸣谢
 
 - 感谢青岛理工大学杨鑫老师为校园地图移动端详情卡片的固定定位与浏览器底部栏适配提供解决思路。
