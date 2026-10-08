@@ -19,17 +19,35 @@ npm run dev       # 启动开发服务器 http://localhost:5173
 
 网站基于 [VitePress](https://vitepress.dev/) 构建，文档使用 Markdown 编写。
 
+## 参与编写
+
+详见 [参与编写](https://wiki.quters.top/start/about/contribute) 页面，内容涵盖环境准备、文档规范、提交流程等完整指引。
+
+
 ## 致谢
 
 本项目的部分前端样式和后端代码参考了[西邮 Wiki](https://wiki.cooo.site/)（[xupt-wiki/xupt-wiki](https://github.com/xupt-wiki/xupt-wiki)），在此感谢西邮 Wiki 项目组的无私开源。
 
 校园地图功能参考了[重庆大学校园地图导航系统](https://github.com/littlemana-bot/CQUMAPS)（[CQUMAPS](https://github.com/littlemana-bot/CQUMAPS)）与[重庆大学资源共享计划 CQU-openlib](https://github.com/INFO-studio/CQU-openlib)（[cqu-openlib.cn/map](https://cqu-openlib.cn/map)）的页面布局、交互设计与配色方案，在此感谢两个项目的无私开源。
 
-## 参与编写
+在线编辑功能参考了[**南华大学**的Fork项目](https://github.com/hzxyayaya/USC-Wiki-Editor)，在此感谢[**南华大学 Wiki (USC Wiki)**](https://uscwiki.com/)项目组的无私开源
 
-详见 [参与编写](https://wiki.quters.top/start/about/contribute) 页面，内容涵盖环境准备、文档规范、提交流程等完整指引。
+感谢青岛理工大学杨鑫老师为校园地图移动端详情卡片的固定定位与浏览器底部栏适配提供解决思路。
+
+## 贡献者
+
+感谢所有参与 QUTWiKi 建设、维护、资料整理和内容编写的同学。
+
+<a href="https://github.com/QUT-Lib/QUT-WiKi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=QUT-Lib/QUT-WiKi" alt="贡献者" />
+</a>
+
+
 
 ## 项目结构
+
+<details>
+<summary>展开查看完整目录结构</summary>
 
 ```
 .
@@ -145,4 +163,6 @@ npm run dev       # 启动开发服务器 http://localhost:5173
             ├── join-us.md            # 加入我们
             └── todo.md               # 编写计划
 ```
+
+</details>
 
