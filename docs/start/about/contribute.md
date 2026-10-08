@@ -289,6 +289,16 @@ docs: 补充参与编写说明
 5. 当编辑结束后，在左下角可以找到Git提交的按钮，进入可以选择要提交的修改，提交类型和提交信息，如无特殊情况，请选择“提交并推送（创建 PR）”
 6. 所有通过在线编辑平台提交的更改，都会进入仓库的 **web-edit** 分支，由站长**审核**后，并入 **contribute** 默认分支
 
+::: tip 关于 web-edit 与 contribute 的同步
+`web-edit` 是 `contribute` 的“后来者”，从 `contribute` 分叉而来，用于承载在线编辑器的提交。为让编辑器始终基于最新的文档内容，仓库配置了自动同步工作流（`.github/workflows/sync-web-edit.yml`）：
+
+- 每当 `contribute` 有新的推送，或每隔数小时定时触发，工作流会把 `contribute` 的最新提交合并进 `web-edit`；
+- 若 `web-edit` 上存在**尚未合并**的 PR，同步会**暂停**，避免把待审核的编辑内容与主分支改动混在一起，待 PR 合并或关闭后再自动跟进；
+- 因此你无需手动维护 `web-edit`，直接在在线编辑器里编辑即可。
+
+维护者如需手动触发同步，可在 GitHub 的 Actions 页面运行「同步 contribute 到 web-edit」工作流。
+:::
+
 <Gallery>
   
 ![在线编辑1](https://pic1.imgdb.cn/i/034aF9RwgqbOcrkVw6uVXW.webp)

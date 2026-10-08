@@ -1,0 +1,60 @@
+name: 同步 contribute 到 web-edit
+
+on:
+  push:
+    branches:
+      - contribute
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: sync-web-edit
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: 合并 contribute 到 web-edit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 web-edit 分支
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: web-edit
+
+      - name: 检查 web-edit 是否有未合并的 PR
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          count=$(gh pr list --repo "$GITHUB_REPOSITORY" --head web-edit --state open --json number --jq 'length')
+          if [ "$count" -gt 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::web-edit 存在 ${count} 个未合并的 PR，暂停同步，待 PR 处理后再跟进。"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 合并 contribute 到 web-edit
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin contribute
+
+          if git merge-base --is-ancestor origin/contribute HEAD; then
+            echo "::notice::web-edit 已包含 contribute 的最新提交，无需同步。"
+            exit 0
+          fi
+
+          git merge --no-edit -m "同步: 合并 contribute 到 web-edit" origin/contribute
+          git push origin HEAD:web-edit
+          echo "::notice::已将 contribute 同步到 web-edit。"

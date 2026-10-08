@@ -378,3 +378,9 @@ top: 3
   - **修订**
     - 《参与编写》补充通过在线编辑器编辑的说明与截图
     - 贡献者页面补充在线编辑功能致谢
+
+- **2026年10月8日**
+  - **新增**
+    - 新增「同步 contribute 到 web-edit」Actions（`sync-web-edit`），在 `contribute` 推送或定时触发时自动把主分支合并进 `web-edit`；若 `web-edit` 存在未合并 PR 则暂停同步
+  - **修订**
+    - 《参与编写》补充 web-edit 与 contribute 的自动同步机制说明
