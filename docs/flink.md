@@ -62,7 +62,7 @@ pageClass: flink-page
 <flink>
 
     - name: MOE 购机指南
-      link: https://moe.lkyu.cf/
+      link: https://moe.lkyu.top/
       avatar: https://pic.imgdb.cn/i/033pp0Ajx1ko6wLY34CD4n.webp
       descr: 写给大学生的电脑科普&购买一体方案
       siteshot: https://pic.imgdb.cn/i/033pCCZhDIJ8B8mzRZIVW7.webp

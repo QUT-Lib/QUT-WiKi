@@ -384,3 +384,9 @@ top: 3
     - 新增「同步 contribute 到 web-edit」Actions（`sync-web-edit`），在 `contribute` 推送或定时触发时自动把主分支合并进 `web-edit`；若 `web-edit` 存在未合并 PR 则暂停同步
   - **修订**
     - 《参与编写》补充 web-edit 与 contribute 的自动同步机制说明
+
+- **2026年10月9日** (**第 300 次提交！**)
+  - **维护**
+    - Twikoo 版本跟进为 `2.0.13` 
+  - **修订**
+    - **MOE 笔记本选购指南**友链网址更新
