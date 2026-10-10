@@ -88,6 +88,31 @@ Linux 生产环境应使用 `code/Dockerfile` 构建镜像，由镜像构建阶�
 
 同步 API 不支持 `force` 参数。服务端会执行请求限流、全局 Chromium 并发控制以及工作表和输出大小限制。
 
+### 强制刷新远端表格
+
+服务端缓存默认 1 小时，客户端 `docs/.http_cache` 同样 1 小时，任一层命中都会拿到旧数据。需要立即拉取最新表格时，用运维手段同时清掉两层缓存：
+
+```bash
+npm run build:refresh   # 清远端缓存 + 强制刷新构建（build:fresh）
+npm run sync:refresh    # 只清远端缓存
+```
+
+`sync:refresh` 通过 SSH 登录同步服务器，删除缓存目录下的 `.xlsx`（脚本 `docs/scripts/refresh-sync-cache.mjs`），下次构建请求该文档时服务端缓存未命中，会用 Chromium 重新同步。环境变量可直接写在仓库根目录 `.env.local`（已 gitignore），也支持命令行传入。支持以下变量：
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `SYNC_SSH_TARGET` | - | 完整 SSH 目标，如 `baimaoyun`（`~/.ssh/config` 别名）或 `root@1.2.3.4`；设置后忽略下面三项 |
+| `SYNC_SSH_HOST` | 必填 | 同步服务器地址（不使用 `SYNC_SSH_TARGET` 时） |
+| `SYNC_SSH_PORT` | - | SSH 端口，不填用 SSH 默认或 config 中的 `Port` |
+| `SYNC_SSH_USER` | - | 登录用户，不填用 SSH 默认或 config 中的 `User` |
+| `SYNC_SSH_KEY` | - | 私钥文件路径，不填则用默认密钥或 ssh-agent |
+| `SYNC_CACHE_DIR` | `/tmp/qutwiki_xlsx_cache` | 服务端缓存目录；官方 Docker 镜像内为 `/cache` |
+| `SYNC_DOCKER_CONTAINER` | - | 服务跑在 Docker 时填容器名，改用 `docker exec` 清理 |
+| `SYNC_SSH_SUDO` | - | 设为 `1` 时用 sudo 删除 |
+| `SYNC_SSH_STRICT` | - | 设为 `1` 时启用严格 host key 校验（默认 `accept-new`） |
+
+GitHub Actions 部署流程（`.github/workflows/deploy.yml`）支持手动触发（Run workflow）时勾选 **force_refresh**：会先清远端缓存，再用 `build:fresh` 构建。需在仓库 Secrets 配置 `SYNC_SSH_HOST`、`SYNC_SSH_PORT`、`SYNC_SSH_USER`、`SYNC_SSH_KEY`（可选 `SYNC_CACHE_DIR`、`SYNC_DOCKER_CONTAINER`）。
+
 ---
 
 ## 二、Gallery 图片画廊

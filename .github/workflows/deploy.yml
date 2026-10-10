@@ -5,6 +5,11 @@ on:
     branches:
       - contribute
   workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 强制刷新腾讯文档同步缓存（清远端缓存 + build:fresh）
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -34,10 +39,34 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: npm ci
 
+      - name: 准备同步服务器 SSH 密钥
+        if: ${{ inputs.force_refresh }}
+        env:
+          SYNC_SSH_KEY: ${{ secrets.SYNC_SSH_KEY }}
+          SYNC_SSH_HOST: ${{ secrets.SYNC_SSH_HOST }}
+          SYNC_SSH_PORT: ${{ secrets.SYNC_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SYNC_SSH_KEY" > ~/.ssh/sync_key
+          chmod 600 ~/.ssh/sync_key
+          ssh-keyscan -p "${SYNC_SSH_PORT:-22}" -H "$SYNC_SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: 清除同步服务器缓存
+        if: ${{ inputs.force_refresh }}
+        env:
+          SYNC_SSH_HOST: ${{ secrets.SYNC_SSH_HOST }}
+          SYNC_SSH_PORT: ${{ secrets.SYNC_SSH_PORT }}
+          SYNC_SSH_USER: ${{ secrets.SYNC_SSH_USER }}
+          SYNC_CACHE_DIR: ${{ secrets.SYNC_CACHE_DIR }}
+          SYNC_DOCKER_CONTAINER: ${{ secrets.SYNC_DOCKER_CONTAINER }}
+          SYNC_SSH_STRICT: '1'
+        run: SYNC_SSH_KEY="$HOME/.ssh/sync_key" node docs/scripts/refresh-sync-cache.mjs
+
       - name: 构建站点
         env:
           VITE_TWIKOO_ENV_ID: ${{ secrets.VITE_TWIKOO_ENV_ID }}
-        run: npm run build
+        run: ${{ inputs.force_refresh && 'npm run build:fresh' || 'npm run build' }}
 
       - name: 准备 SSH 密钥
         env:
