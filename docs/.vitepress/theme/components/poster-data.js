@@ -18,8 +18,8 @@
 export const POSTERS = [
   {
     // TODO: 替换为实际海报图（桌面端 16:9 / 移动端 9:16）
-    desktop: 'https://pic1.imgdb.cn/i/034dJHSpIagHETSgP31igm.webp',
-    mobile: 'https://pic1.imgdb.cn/i/034dJHpyCs1bOM5nXXydcU.webp',
+    desktop: 'https://pic1.imgdb.cn/i/034dYpIad38m3SsprrzEh2.webp',
+    mobile: 'https://pic1.imgdb.cn/i/034dYpW39kkDiqnoCr6D2H.webp',
     title: '“青海油”三校狼人杀联赛｜集结开赛！',
     description: '以发言交锋，用逻辑破局。青岛理工大学、中国石油大学、中国海洋大学的狼人杀玩家们，是时候上桌了！“青海油”三校狼人杀联赛即将开赛，我们诚邀三校同学参赛，在真假交织的发言中寻找线索，在阵营对抗中默契协作，一起争夺决赛席位！',
     author: '青岛理工大学棋牌与游戏爱好者协会',
