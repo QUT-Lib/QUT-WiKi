@@ -567,3 +567,73 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 端口由 `docs/.vitepress/scripts/free-port.mjs` 在 5000–60000 范围内随机探测可用端口，避免固定在某个可能被系统保留或占用的端口上。启动后控制台会打印实际监听地址，也可用 `./build.ps1 -Port 5173` 指定端口。
 
 `npm run build:fresh` 会忽略本地 `docs/.http_cache/` 的有效期并重新请求同步服务，但服务端仍按自身缓存和限流策略处理，不提供强制绕过缓存的参数。
+
+---
+
+## 十三、首页海报卡片
+
+`<PosterCards>` 用于在首页 features 下方插入海报图。桌面端按 **16:9** 展示、移动端按 **9:16** 展示，两套图片通过原生 `<picture>` 自动切换，SSR 无闪烁。
+
+### 用法
+
+组件已全局注册，在 `docs/index.md` 的 frontmatter 之后写标签即可：
+
+```md
+<PosterCards />
+```
+
+也可在任意页面内联传入数据：
+
+```md
+<PosterCards title="推荐海报" :min-width="360" :items="[
+  { desktop: 'https://example.com/poster-16x9.webp', mobile: 'https://example.com/poster-9x16.webp', title: '标题', description: '描述', author: '作者', date: '2026-01-01', href: '/' },
+]" />
+```
+
+### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `items` | array | `POSTERS` | 海报数组，缺省读取数据文件 |
+| `title` | string | 空 | 海报区标题，留空不显示 |
+| `min-width` | number \| string | `320` | 卡片最小列宽，容器放不下时自动折行；单条海报会占满整行 |
+
+### 数据文件
+
+海报写在 `docs/.vitepress/theme/components/poster-data.js`，在 `POSTERS` 数组中追加：
+
+```js
+{
+  desktop: 'https://example.com/poster-16x9.webp',
+  mobile: 'https://example.com/poster-9x16.webp',
+  image: 'https://example.com/poster.webp',
+  title: '海报标题',
+  description: '一句话描述。',
+  author: 'QUTWiKi',
+  date: '2026-01-01',
+  href: '/start/preface/introduction',
+}
+```
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `desktop` | ✅ | 桌面端图片（16:9） |
+| `mobile` | ✅ | 移动端图片（9:16） |
+| `image` | ❌ | 通用兜底图，`desktop` 或 `mobile` 缺省时使用 |
+| `title` | ❌ | 海报标题 |
+| `description` | ❌ | 描述文字 |
+| `author` | ❌ | 作者，与日期同行展示 |
+| `date` | ❌ | 创作日期，原样展示 |
+| `href` | ❌ | 标题跳转链接，仅允许 `http`、`https` 或站内相对链接；外部链接自动新窗口打开 |
+
+### 展示说明
+
+- 断点 `768px`：视口 ≥ 768px 取 `desktop` 图并按 16:9 展示，否则取 `mobile` 图并按 9:16 展示
+- 单条海报占满整行，多条自动排成响应式网格
+- 点击海报图片会打开全站图片查看器，支持缩放、拖拽，多张海报可左右切换
+- 配置 `href` 时，点击标题跳转到对应链接（外链自动新窗口打开）
+- 悬停时卡片轻微上浮、图片放大、边框变主题色
+
+### 图片要求
+
+`desktop`、`mobile` 需为 `https://` 直链或 `/` 开头的站内 `public` 路径。

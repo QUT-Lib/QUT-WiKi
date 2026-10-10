@@ -44,8 +44,10 @@ function resetTransform() {
 }
 
 function open(element) {
-  const inMain = element.closest('.main') || document
-  const nodes = Array.from(inMain.querySelectorAll('img')).filter((img) => img.closest('.main'))
+  const inMain = element.closest('.main') || element.closest('.vp-doc') || document
+  const nodes = Array.from(inMain.querySelectorAll('img')).filter(
+    (img) => img.closest('.main') || img.closest('.vp-doc')
+  )
   sources.value = nodes
   const at = nodes.indexOf(element)
   index.value = at >= 0 ? at : 0
@@ -137,7 +139,7 @@ function onKeydown(e) {
 
 function onDocumentClick(e) {
   const target = e.target
-  if (target instanceof HTMLImageElement && target.closest('.main')) {
+  if (target instanceof HTMLImageElement && (target.closest('.main') || target.closest('.vp-doc'))) {
     open(target)
   }
 }
