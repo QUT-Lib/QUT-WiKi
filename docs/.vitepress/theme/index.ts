@@ -1,4 +1,5 @@
 import DefaultTheme from 'vitepress/theme'
+import type { Theme } from 'vitepress'
 import MyLayout from './MyLayout.vue'
 import Gallery from './components/Gallery.vue'
 import AppCards from './components/AppCards.vue'
@@ -10,7 +11,7 @@ import PosterCards from './components/PosterCards.vue'
 import GitHistory from './components/GitHistory.vue'
 import './style.css'
 
-export default {
+const theme: Theme = {
   extends: DefaultTheme,
   Layout: MyLayout,
   enhanceApp({ app }) {
@@ -25,3 +26,5 @@ export default {
     app.component('GitHistory', GitHistory)
   },
 }
+
+export default theme

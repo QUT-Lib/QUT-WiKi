@@ -6,6 +6,7 @@ import Contributors from './components/Contributors.vue'
 import GitHistory from './components/GitHistory.vue'
 import TwikooComments from './components/TwikooComments.vue'
 import SiteStats from './components/SiteStats.vue'
+import PagePet from './components/PagePet.vue'
 
 const { frontmatter } = useData()
 const route = useRoute()
@@ -400,6 +401,12 @@ onUnmounted(() => {
       <span v-if="hasGallery" class="img-viewer-counter">{{ index + 1 }} / {{ sources.length }}</span>
     </div>
   </Teleport>
+  <Layout>
+    <template #doc-before>
+    </template>
+  </Layout>
+
+  <PagePet />
 </template>
 
 <style>
