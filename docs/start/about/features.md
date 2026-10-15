@@ -597,7 +597,7 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 
 ## 十三、首页海报卡片
 
-`<PosterCards>` 用于在首页 features 下方插入海报图。桌面端按 **16:9** 展示、移动端按 **9:16** 展示，两套图片通过原生 `<picture>` 自动切换，SSR 无闪烁。
+`<PosterCards>` 用于在首页 features 下方插入海报图。桌面端优先取 **横版** 图、移动端优先取 **竖版** 图，两套图片通过原生 `<picture>` 自动切换，SSR 无闪烁。组件会读取图片实际宽高比，同一行的卡片按等高“对齐铺满”排版，横版、竖版混排也不会被裁切。
 
 ### 用法
 
@@ -610,8 +610,10 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 也可在任意页面内联传入数据：
 
 ```md
-<PosterCards title="推荐海报" :min-width="360" :items="[
+<PosterCards title="推荐海报" :row-height="300" :gap="20" :items="[
   { desktop: 'https://example.com/poster-16x9.webp', mobile: 'https://example.com/poster-9x16.webp', title: '标题', description: '描述', author: '作者', date: '2026-01-01', href: '/' },
+  { desktop: 'https://example.com/poster-landscape.webp', orientation: 'landscape', title: '只有横版' },
+  { mobile: 'https://example.com/poster-portrait.webp', orientation: 'portrait', title: '只有竖版' },
 ]" />
 ```
 
@@ -621,7 +623,8 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 |------|------|--------|------|
 | `items` | array | `POSTERS` | 海报数组，缺省读取数据文件 |
 | `title` | string | 空 | 海报区标题，留空不显示 |
-| `min-width` | number \| string | `320` | 卡片最小列宽，容器放不下时自动折行；单条海报会占满整行 |
+| `row-height` | number \| string | `320` | 每行海报的目标高度，组件据此计算每张卡片宽度；视口越宽，一行容纳越多 |
+| `gap` | number \| string | `20` | 卡片间距 |
 
 ### 数据文件
 
@@ -632,6 +635,8 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
   desktop: 'https://example.com/poster-16x9.webp',
   mobile: 'https://example.com/poster-9x16.webp',
   image: 'https://example.com/poster.webp',
+  ratio: 16 / 9,
+  orientation: 'landscape',
   title: '海报标题',
   description: '一句话描述。',
   author: 'QUTWiKi',
@@ -642,23 +647,28 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
-| `desktop` | ✅ | 桌面端图片（16:9） |
-| `mobile` | ✅ | 移动端图片（9:16） |
-| `image` | ❌ | 通用兜底图，`desktop` 或 `mobile` 缺省时使用 |
+| `desktop` | ❌ | 桌面端图片（建议横版 16:9） |
+| `mobile` | ❌ | 移动端图片（建议竖版 9:16） |
+| `image` | ❌ | 通用兜底图，`desktop` / `mobile` 都缺省时使用 |
+| `ratio` | ❌ | 图片宽高比（如 `16 / 9`、`9 / 16`），图片加载前先按此占位排版 |
+| `orientation` | ❌ | `'landscape'` 或 `'portrait'`，等价于填写对应比例的 `ratio` |
 | `title` | ❌ | 海报标题 |
 | `description` | ❌ | 描述文字 |
 | `author` | ❌ | 作者，与日期同行展示 |
 | `date` | ❌ | 创作日期，原样展示 |
 | `href` | ❌ | 标题跳转链接，仅允许 `http`、`https` 或站内相对链接；外部链接自动新窗口打开 |
 
+> `desktop`、`mobile`、`image` 至少提供其一。只提供横版或只提供竖版时，组件会自动按图片实际比例排版。
+
 ### 展示说明
 
-- 断点 `768px`：视口 ≥ 768px 取 `desktop` 图并按 16:9 展示，否则取 `mobile` 图并按 9:16 展示
-- 单条海报占满整行，多条自动排成响应式网格
+- 断点 `768px`：视口 ≥ 768px 优先取 `desktop` 图，否则优先取 `mobile` 图；缺省时回退到 `image` 或另一张
+- 组件读取每张图片的实际宽高比，按 `row-height` 计算每行卡片的宽度，使同一行海报等高、整行铺满（类似相册瀑布流对齐）
+- 横版、竖版海报可混排：横版占更宽、竖版更窄，互不裁切；单独一张只会按目标高度显示，不会被强行拉伸
 - 点击海报图片会打开全站图片查看器，支持缩放、拖拽，多张海报可左右切换
 - 配置 `href` 时，点击标题跳转到对应链接（外链自动新窗口打开）
 - 悬停时卡片轻微上浮、图片放大、边框变主题色
 
 ### 图片要求
 
-`desktop`、`mobile` 需为 `https://` 直链或 `/` 开头的站内 `public` 路径。
+`desktop`、`mobile`、`image` 需为 `https://` 直链或 `/` 开头的站内 `public` 路径。

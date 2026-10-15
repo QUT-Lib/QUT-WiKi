@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { POSTERS } from './poster-data.js'
 
 const props = defineProps({
@@ -11,17 +11,125 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  minWidth: {
+  rowHeight: {
     type: [Number, String],
     default: 320,
   },
+  gap: {
+    type: [Number, String],
+    default: 20,
+  },
 })
 
-const posters = computed(() => (Array.isArray(props.items) ? props.items.filter(Boolean) : []))
+const posters = computed(() => (
+  Array.isArray(props.items)
+    ? props.items.filter((item) => item && (item.desktop || item.mobile || item.image))
+    : []
+))
+
+const root = ref(null)
+let resizeObserver
+let frame = 0
+let images = []
+
+function px(value, fallback) {
+  const number = typeof value === 'number' ? value : Number.parseFloat(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+function declaredRatio(item) {
+  if (!item) return 0
+  const ratio = Number(item.ratio)
+  if (Number.isFinite(ratio) && ratio > 0) return ratio
+  if (item.orientation === 'portrait') return 9 / 16
+  if (item.orientation === 'landscape') return 16 / 9
+  return 0
+}
+
+function mediaStyle(item) {
+  const ratio = declaredRatio(item)
+  return ratio ? { '--poster-ratio': String(ratio) } : {}
+}
 
 const gridStyle = computed(() => ({
-  '--poster-min': typeof props.minWidth === 'number' ? `${props.minWidth}px` : props.minWidth,
+  '--poster-gap': `${px(props.gap, 20)}px`,
 }))
+
+function layout() {
+  if (!root.value) return
+
+  const width = root.value.clientWidth
+  if (!width) return
+
+  const gap = px(props.gap, 20)
+  const rowHeight = px(props.rowHeight, 320)
+  const maxHeight = rowHeight * 1.8
+
+  const cards = Array.from(root.value.children).map((card) => {
+    const media = card.querySelector('.qut-poster-media')
+    const image = card.querySelector('img')
+    const natural = image && image.naturalWidth && image.naturalHeight
+      ? image.naturalWidth / image.naturalHeight
+      : 0
+    const ratio = natural || Number(card.getAttribute('data-ratio')) || 1
+
+    if (media) media.style.setProperty('--poster-ratio', String(ratio))
+
+    return { card, media, ratio }
+  })
+
+  const rows = []
+  let row = []
+  let ratioSum = 0
+
+  for (const entry of cards) {
+    row.push(entry)
+    ratioSum += entry.ratio
+
+    if (ratioSum * rowHeight + (row.length - 1) * gap >= width) {
+      rows.push(row)
+      row = []
+      ratioSum = 0
+    }
+  }
+
+  if (row.length) rows.push(row)
+
+  for (const entries of rows) {
+    const totalRatio = entries.reduce((sum, entry) => sum + entry.ratio, 0)
+    // Leave one pixel for browser subpixel rounding so a full row never wraps.
+    const availableWidth = width - (entries.length - 1) * gap - 1
+    // Cap underfilled rows so a lone portrait poster does not grow absurdly tall.
+    const height = Math.min(availableWidth / totalRatio, maxHeight)
+
+    for (const entry of entries) {
+      const itemWidth = height * entry.ratio
+      entry.card.style.flex = `0 0 ${itemWidth}px`
+      entry.card.style.maxWidth = `${itemWidth}px`
+      if (entry.media) entry.media.style.height = `${height}px`
+    }
+  }
+}
+
+function scheduleLayout() {
+  cancelAnimationFrame(frame)
+  frame = requestAnimationFrame(layout)
+}
+
+onMounted(async () => {
+  await nextTick()
+  images = root.value ? Array.from(root.value.querySelectorAll('img')) : []
+  images.forEach((image) => image.addEventListener('load', scheduleLayout))
+  resizeObserver = new ResizeObserver(scheduleLayout)
+  if (root.value) resizeObserver.observe(root.value)
+  scheduleLayout()
+})
+
+onBeforeUnmount(() => {
+  images.forEach((image) => image.removeEventListener('load', scheduleLayout))
+  resizeObserver?.disconnect()
+  cancelAnimationFrame(frame)
+})
 
 function desktopSrc(item) {
   return item.desktop || item.image || item.mobile || ''
@@ -46,14 +154,15 @@ function isExternal(item) {
 <template>
   <section v-if="posters.length" class="qut-poster">
     <h2 v-if="title" class="qut-poster-title">{{ title }}</h2>
-    <div class="qut-poster-grid" :style="gridStyle">
+    <div ref="root" class="qut-poster-grid" :style="gridStyle">
       <article
         v-for="(item, index) in posters"
         :key="index"
         class="qut-poster-card"
         :class="{ 'is-link': linkOf(item) }"
+        :data-ratio="declaredRatio(item) || ''"
       >
-        <picture class="qut-poster-media">
+        <picture class="qut-poster-media" :style="mediaStyle(item)">
           <source v-if="desktopSrc(item)" media="(min-width: 768px)" :srcset="desktopSrc(item)" />
           <img :src="mobileSrc(item)" :alt="item.title || ''" loading="lazy" decoding="async">
         </picture>
@@ -98,14 +207,18 @@ function isExternal(item) {
 }
 
 .qut-poster-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--poster-min, 320px), 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--poster-gap, 20px);
 }
 
 .qut-poster-card {
   display: flex;
+  flex: 1 1 320px;
   flex-direction: column;
+  min-width: 0;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--vp-c-divider);
@@ -125,14 +238,15 @@ function isExternal(item) {
 .qut-poster-media {
   display: block;
   position: relative;
-  aspect-ratio: 9 / 16;
+  width: 100%;
+  aspect-ratio: var(--poster-ratio, 9 / 16);
   overflow: hidden;
   background: var(--vp-c-bg);
 }
 
 @media (min-width: 768px) {
   .qut-poster-media {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: var(--poster-ratio, 16 / 9);
   }
 }
 
@@ -152,6 +266,7 @@ function isExternal(item) {
 
 .qut-poster-body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 6px;
   padding: 14px 16px 16px;
