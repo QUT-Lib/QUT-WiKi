@@ -793,7 +793,7 @@ export const BUILDINGS = [
     name: '弘文楼',
     category: 'teaching',
     campusId: 'l',
-    coord: [118.272733,35.187697],
+    coord: [118.269201,35.187097],
     desc: '临沂校区教学楼。'
   },
   {
@@ -801,7 +801,7 @@ export const BUILDINGS = [
     name: '行远楼',
     category: 'teaching',
     campusId: 'l',
-    coord: [118.273356,35.187124],
+    coord: [118.26947,35.188465],
     desc: '临沂校区教学楼。'
   },
   {
@@ -809,7 +809,7 @@ export const BUILDINGS = [
     name: '知源楼',
     category: 'teaching',
     campusId: 'l',
-    coord: [118.271323,35.186651],
+    coord: [118.272861,35.187425],
     desc: '临沂校区教学楼。'
   },
   {
@@ -817,15 +817,15 @@ export const BUILDINGS = [
     name: '敏行楼',
     category: 'teaching',
     campusId: 'l',
-    coord: [118.272411,35.186876],
+    coord: [118.274229,35.187049],
     desc: '临沂校区教学楼。'
   },
   {
     id: 'l_teaching_05',
-    name: '知心楼',
+    name: '知新楼',
     category: 'teaching',
     campusId: 'l',
-    coord: [118.271253,35.187936],
+    coord: [118.273912,35.185694],
     desc: '临沂校区教学楼。'
   },
   {
@@ -833,7 +833,7 @@ export const BUILDINGS = [
     name: '筑韵楼',
     category: 'college',
     campusId: 'l',
-    coord: [118.272596,35.186061],
+    coord: [118.271242,35.187785],
     desc: '临沂校区学院楼。'
   },
   {
@@ -841,7 +841,7 @@ export const BUILDINGS = [
     name: '校医院',
     category: 'hospital',
     campusId: 'l',
-    coord: [118.269555,35.187855],
+    coord: [118.276853,35.187871],
     desc: '临沂校区校医院，负责日常就诊与体检。'
   },
   {
@@ -849,7 +849,7 @@ export const BUILDINGS = [
     name: '西餐厅（文苑餐厅）',
     category: 'canteen',
     campusId: 'l',
-    coord: [118.269615,35.187218],
+    coord: [118.269021,35.189164],
     desc: '临沂校区西侧餐厅。'
   },
   {
@@ -857,7 +857,7 @@ export const BUILDINGS = [
     name: '东餐厅（知苑餐厅）',
     category: 'canteen',
     campusId: 'l',
-    coord: [118.274048,35.187027],
+    coord: [118.274388,35.188118],
     desc: '临沂校区东侧餐厅。'
   },
   {
@@ -865,103 +865,103 @@ export const BUILDINGS = [
     name: '一号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.270121,35.188731],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.266943,35.188202],
+    desc: '临沂校区教师公寓。'
   },
   {
     id: 'l_dormitory_02',
     name: '二号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.270664,35.188736],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.26715,35.188886],
+    desc: '临沂校区研究生公寓。'
   },
   {
     id: 'l_dormitory_03',
     name: '三号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.271207,35.188741],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.267312,35.189566],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_04',
     name: '四号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.271750,35.188746],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.268066,35.189553],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_05',
     name: '五号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.272293,35.188751],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.270107,35.18912],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_06',
     name: '六号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.272836,35.188756],
-    desc: '临沂校区北区学生公寓。'
+    coord: [118.270793,35.188999],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_07',
     name: '七号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.270121,35.185219],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.271738,35.188815],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_08',
     name: '八号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.270664,35.185224],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.272367,35.188695],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_09',
     name: '九号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.271207,35.185229],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.272976,35.188593],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_10',
     name: '十号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.271750,35.185234],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.273592,35.188443],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_11',
     name: '十一号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.272293,35.185239],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.275539,35.18806],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_dormitory_12',
     name: '十二号公寓',
     category: 'dormitory',
     campusId: 'l',
-    coord: [118.272836,35.185244],
-    desc: '临沂校区南区学生公寓。'
+    coord: [118.276152,35.187936],
+    desc: '临沂校区学生公寓。'
   },
   {
     id: 'l_sports_01',
     name: '西操场',
     category: 'sports',
     campusId: 'l',
-    coord: [118.268426,35.186497],
+    coord: [118.267006,35.186408],
     desc: '临沂校区西侧田径运动场。'
   },
   {
@@ -969,7 +969,7 @@ export const BUILDINGS = [
     name: '东操场',
     category: 'sports',
     campusId: 'l',
-    coord: [118.274562,35.186252],
+    coord: [118.276393,35.186927],
     desc: '临沂校区东侧田径运动场。'
   },
   {
@@ -977,7 +977,7 @@ export const BUILDINGS = [
     name: '体育馆',
     category: 'sports',
     campusId: 'l',
-    coord: [118.273521,35.188028],
+    coord: [118.266261,35.184182],
     desc: '临沂校区室内体育馆，供室内课程与比赛使用。'
   }
 ]
