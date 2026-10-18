@@ -59,6 +59,11 @@ pageClass: flink-page
       descr: 西安邮电大学非官方校园生活指南
       avatar: https://pic1.imgdb.cn/i/034f2LQxcsPbb372pC9Cdo.svg
       siteshot: https://pic1.imgdb.cn/i/034f2OeaTp6zXQlRUYqPd5.webp
+    - name: HBU Wiki
+      link: https://hbuwiki.top/
+      descr: 由河北大学学生共建的校园知识库，整理校园生活与学习信息。
+      avatar: https://pic1.imgdb.cn/i/034huAlWkxYzAKrbWwuqzp.webp
+      siteshot: https://pic1.imgdb.cn/i/034huBntIfUHnGc8fNY5O7.webp
 
 </flink>
 
