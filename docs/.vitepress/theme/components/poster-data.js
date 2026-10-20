@@ -20,6 +20,15 @@
 
 export const POSTERS = [
   {
+    desktop: 'https://pic1.imgdb.cn/i/034jDLcufrj4Y3LC1aB8KL.webp',
+    mobile: 'https://pic1.imgdb.cn/i/034jDLqhTXoa2wsJqW4yPI.webp',
+    title: '网易狼人杀校园行（非遗主题季）· 青理站',
+    description: '认识新同学，从一局狼人杀开始！由青岛理工大学棋牌与游戏爱好者协会主办的网易狼人杀校园行来啦，小白和资深玩家都能轻松组队开局。10.21 周三 14:00-17:00，图书馆礼贤广场展位 43，现场扫码参与即可免费领取非遗周边、狼人杀卡牌、镭射票等精美好礼；随手发布短视频或图文动态，还有机会获得现金红包与游戏点券。',
+    author: '青岛理工大学棋牌与游戏爱好者协会',
+    date: '2026.10.21 14:00-17:00',
+    href: '',
+  },
+  {
     desktop: 'https://pic1.imgdb.cn/i/034dYpIad38m3SsprrzEh2.webp',
     mobile: 'https://pic1.imgdb.cn/i/034dYpW39kkDiqnoCr6D2H.webp',
     title: '“青海油”三校狼人杀联赛｜集结开赛！',
