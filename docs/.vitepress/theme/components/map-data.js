@@ -979,5 +979,53 @@ export const BUILDINGS = [
     campusId: 'l',
     coord: [118.266261,35.184182],
     desc: '临沂校区室内体育馆，供室内课程与比赛使用。'
+  },
+  {
+    id: 'l_sports_04',
+    name: '篮球场',
+    category: 'sports',
+    campusId: 'l',
+    coord: [118.267884,35.185399],
+    desc: '临沂校区室外篮球场。'
+  },
+  {
+    id: 'l_sports_05',
+    name: '篮球场',
+    category: 'sports',
+    campusId: 'l',
+    coord: [118.267782,35.188498],
+    desc: '临沂校区室外篮球场。'
+  },
+  {
+    id: 'l_sports_06',
+    name: '篮球场',
+    category: 'sports',
+    campusId: 'l',
+    coord: [118.276038,35.187143],
+    desc: '临沂校区室外篮球场。' 
+  },
+  {
+    id: 'l_express_01',
+    name: '京东快递点',
+    category: 'express',
+    campusId: 'l',
+    coord: [118.267065,35.189069],
+    desc: '临沂校区京东快递代收点。'
+  },
+  {
+    id: 'l_express_02',
+    name: '顺丰快递点',
+    category: 'express',
+    campusId: 'l',
+    coord: [118.267155,35.189049],
+    desc: '临沂校区顺丰快递代收点。'
+  },
+  {
+    id: 'l_shop_01',
+    name: '打印店',
+    category: 'shop',
+    campusId: 'l',
+    coord: [118.267307,35.189019],
+    desc: '临沂校区打印店，可打印复印。'
   }
 ]
