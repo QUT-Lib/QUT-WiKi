@@ -136,6 +136,42 @@ async function syncWithLimit(url, syncTimeout) {
   }
 }
 
+// 腾讯文档页面的 DOMContentLoaded 有时迟迟不触发（页面本身已经可用），
+// 因此导航超时不应中断同步，转而依赖后续的工作表等待。
+async function navigateToDoc(page, url) {
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
+  } catch (error) {
+    const message = error?.message || ''
+    if (/frame.*detached|detached.*frame/i.test(message)) {
+      log('  → 页面接管了导航，继续等待工作表加载')
+      return
+    }
+    if (/Navigation timeout/i.test(message)) {
+      log('  → DOMContentLoaded 未在 15s 内触发，继续等待工作表加载')
+      return
+    }
+    throw error
+  }
+}
+
+// 等待期间页面可能仍在导航，执行上下文被销毁时重试。
+async function waitForWorkbook(page, predicate, arg, timeout) {
+  const deadline = Date.now() + timeout
+  for (;;) {
+    const left = deadline - Date.now()
+    if (left <= 0) throw new Error('等待工作表加载超时')
+    try {
+      return await page.waitForFunction(predicate, { timeout: Math.min(left, 20000), polling: 500 }, arg)
+    } catch (error) {
+      const message = error?.message || ''
+      if (!/Execution context was destroyed|Cannot find context|detached|Target closed|Navigating frame/i.test(message)) throw error
+      log('  → 页面仍在导航，重试等待工作表')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+  }
+}
+
 export async function syncSheets(docUrl) {
   log('启动 Chromium...')
   const browser = await puppeteer.launch({
@@ -148,11 +184,11 @@ export async function syncSheets(docUrl) {
   try {
     const page = await browser.newPage()
     log(`打开腾讯文档：${docUrl}`)
-    await page.goto(docUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    await page.waitForFunction(() => {
+    await navigateToDoc(page, docUrl)
+    await waitForWorkbook(page, () => {
       const manager = window.SpreadsheetApp?.workbook?.worksheetManager
       return manager?.getSheetList?.().length > 0
-    }, { timeout: 60000, polling: 500 })
+    }, undefined, 60000)
 
     const sheetInfo = await page.evaluate(() => {
       const manager = window.SpreadsheetApp.workbook.worksheetManager
@@ -169,16 +205,11 @@ export async function syncSheets(docUrl) {
       log(`读取工作表「${name}」...`)
       const sheetUrl = new URL(docUrl)
       sheetUrl.searchParams.set('tab', id)
-      try {
-        await page.goto(sheetUrl.href, { waitUntil: 'domcontentloaded', timeout: 30000 })
-      } catch (error) {
-        if (!/frame.*detached|detached.*frame/i.test(error.message)) throw error
-        log('  → 页面接管了导航，继续等待工作表加载')
-      }
-      await page.waitForFunction((sheetId) => {
+      await navigateToDoc(page, sheetUrl.href)
+      await waitForWorkbook(page, (sheetId) => {
         const workbook = window.SpreadsheetApp?.workbook
         return workbook?.worksheetManager?.getSheetBySheetId?.(sheetId)?.cellDataGrid
-      }, { timeout: 60000, polling: 500 }, id)
+      }, id, 60000)
       await new Promise(resolve => setTimeout(resolve, 2000))
 
       const rows = await page.evaluate((sheetId, limits) => {

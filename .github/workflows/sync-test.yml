@@ -1,0 +1,39 @@
+name: 测试腾讯文档同步
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: 在 Actions 内导出腾讯文档
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 安装依赖
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm ci
+
+      - name: 安装 Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 同步腾讯文档
+        run: node docs/scripts/sync-tencent.mjs
+
+      - name: 上传导出结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: tencent-xlsx
+          path: docs/.http_cache/*.xlsx
+          if-no-files-found: error
