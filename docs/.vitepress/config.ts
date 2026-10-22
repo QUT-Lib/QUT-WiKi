@@ -4,8 +4,8 @@ import { readdirSync, readFileSync, statSync } from 'fs'
 import { resolve, extname, dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import taskLists from 'markdown-it-task-lists'
-import { xlsxTablePlugin } from './plugins/xlsx-table'
-import { flinkBlockPlugin } from './plugins/flink-block'
+import { xlsxTablePlugin } from './plugins/xlsx-table.ts'
+import { flinkBlockPlugin } from './plugins/flink-block.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const docsRoot = resolve(__dirname, '..')
