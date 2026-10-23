@@ -58,8 +58,8 @@ function inline(text: string, list?: RagRef[]): string {
     .map((n) => {
       const ref = list?.[Number(n) - 1]
       return ref
-        ? `<a class="rag-cite" href="${esc(refPath(ref))}" data-rag-path="${esc(pathOf(ref))}" target="_self">${n}</a>`
-        : `<span class="rag-cite">${n}</span>`
+        ? `<a class="rag-cite" href="${esc(refPath(ref))}" data-rag-path="${esc(pathOf(ref))}" target="_self">[${n}]</a>`
+        : `<span class="rag-cite">[${n}]</span>`
     })
     .join(''))
   return html
@@ -643,25 +643,41 @@ onBeforeUnmount(() => {
   white-space: pre;
 }
 
-.rag-cite,
-.rag-tag {
+/* 注意：这些节点由 v-html 生成，没有 scoped 的 data-v 属性，
+   必须用 :deep() 才能命中，否则 [1] 会退化成普通数字 */
+.rag-md :deep(.rag-cite) {
   display: inline-block;
-  min-width: 0.95rem;
+  margin: 0 0.1rem;
+  padding: 0 0.18rem;
+  border-radius: 0.2rem;
+  background: var(--vp-c-brand-soft, rgba(52, 81, 178, 0.14));
+  color: var(--vp-c-brand-1);
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: super;
+}
+
+.rag-md :deep(.rag-cite:hover) {
+  background: var(--vp-c-brand-1);
+  color: #fff;
+}
+
+.rag-md :deep(.rag-tag) {
+  display: inline-block;
   margin: 0 0.14rem;
   padding: 0 0.2rem;
   border-radius: 0.25rem;
   background: var(--vp-c-brand-soft, rgba(52, 81, 178, 0.14));
   color: var(--vp-c-brand-1);
-  font-size: 0.68rem;
-  font-weight: 600;
-  line-height: 1rem;
-  text-align: center;
+  font-size: 0.72em;
+  line-height: 1.2;
   text-decoration: none;
   vertical-align: 1px;
 }
 
-.rag-cite:hover,
-.rag-tag:hover {
+.rag-md :deep(.rag-tag:hover) {
   background: var(--vp-c-brand-1);
   color: #fff;
 }
