@@ -672,3 +672,102 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 ### 图片要求
 
 `desktop`、`mobile`、`image` 需为 `https://` 直链或 `/` 开头的站内 `public` 路径。
+
+---
+
+## 十四、站内 AI 问答（RAG）
+
+搜索框即问答入口。在任意页面按 `Ctrl + K`（或点击导航栏「搜索」），输入一句自然语言问题后回车，
+弹窗顶部会给出基于本站文章的回答，并标注原文出处；**原来的站内搜索结果保留在下方**，AI 不可用时
+可以继续当普通搜索用。
+
+### 使用方式
+
+| 操作 | 结果 |
+|------|------|
+| 输入提问句（含「怎么 / 如何 / 在哪 / 是什么 / 为什么 / 吗 / ？」等）后回车 | 顶部出现 AI 回答，下方照常列出站内结果 |
+| 输入关键词（如「校园卡」）后回车 | 与原生搜索一致，直接进入选中的页面 |
+| `Ctrl / ⌘ + Enter` | 强制走 AI，不看是否为提问句 |
+| 点击回答里的 `[1]` 角标或底部参考条目 | 站内跳转到对应文章、定位到锚点 |
+| 「重新生成」/「收起」 | 重新提问 / 折叠答案，留出空间看搜索结果 |
+| `Esc` | 关闭弹窗（原生逻辑不变） |
+
+### 交互细节
+
+- 卡片注入在原生搜索弹窗的 `.shell` 里，不新增悬浮按钮，入口、快捷键、无障碍行为全部沿用 VitePress
+- 输入框占位文字改为「搜索文档，或直接输入问题…」
+- 回答流式输出；同一问题在同一会话内命中缓存，不会重复请求
+- 只展示答案真正引用到的资料；一句都没引用时回退展示全部召回结果
+- AI 失败时提示「下方的站内搜索结果仍然可用」，不阻塞原生搜索
+- 移动端自动隐藏「回车 / Ctrl+Enter」快捷键提示，只保留「问 AI」按钮
+
+### 工作方式
+
+```text
+搜索框（RagSearch.vue）
+  └─ POST /api/rag/ask
+       ├─ 智谱 embedding-3 编码问题
+       ├─ BM25 + 向量 RRF 融合（vector_first，取 top6）
+       ├─ 系统提示词 + 资料 + 问题 交给生成模型
+       └─ LongCat（失败降级 DeepSeek），SSE 流式返回
+```
+
+- 检索、拼接、生成全部在服务端完成，**前端不持有任何密钥**
+- 语料为本站 218 个块（43 篇文档 + 5 张表格），只覆盖本站内容，不会拿外部知识作答
+- 每条回答的引用都带页面路径与锚点，提示词要求「资料里没有就说没有」
+
+### 相关文件
+
+| 文件 | 作用 |
+|------|------|
+| `docs/.vitepress/theme/components/RagSearch.vue` | 把 AI 卡片注入原生搜索弹窗，接管提问型查询的回车 |
+| `docs/.vitepress/theme/MyLayout.vue` | 全站挂载 `<RagSearch />` |
+| `docs/.vitepress/theme/index.ts` | 注册组件 |
+| `docs/.vitepress/theme/style.css` | 挂载点 `.rag-search-host { display: contents }` |
+| `docs/.vitepress/config.ts` | 开发环境把 `/api/rag` 代理到本地 RAG 服务（`RAG_API_TARGET`，默认 `http://127.0.0.1:9010`） |
+
+生产环境走同源：`https://wiki.quters.top/api/rag/*` 由阿里云 nginx 反代到白猫云的问答服务，
+因此不存在跨域。若需要指向别的地址，构建时设置环境变量 `VITE_RAG_API`。
+
+### 部署与维护
+
+RAG 服务不在本站仓库内，而在 `D:\code\RAG`：
+
+```powershell
+# 站点文章更新后：重新抽取语料、重建智谱索引、上线并重启
+.\deploy\publish.ps1
+
+# 只改了后端代码或提示词，没有动语料
+.\deploy\publish.ps1 -SkipIndex
+```
+
+| 场景 | 操作 |
+|------|------|
+| 看服务状态 | `ssh baimaoyun "systemctl status qutwiki-rag"` |
+| 看日志 | `ssh baimaoyun "journalctl -u qutwiki-rag -n 50 --no-pager"` |
+| 只重启 | `ssh baimaoyun "systemctl restart qutwiki-rag"` |
+| 改问题提示词 | 改 `code/RAG/scripts/ui_profile.py` 后执行 `publish.ps1 -SkipIndex` |
+
+> 在 1Panel 面板里重新保存本网站配置时，可能会重写 `conf.d/wiki.quters.top.conf`，
+> 导致 `/api/rag/` 的 include 行丢失（表现为前端 404）。备份在同目录 `.bak.rag`，加回去并 reload 即可。
+
+### 限额与防护
+
+- 反代层带 `X-RAG-Token`，服务端二次校验，直接从公网打 8098 无效
+- 服务端口只对阿里云前置机与本机开放，其余来源 iptables 丢弃
+- 按真实 IP 限流 **12 次 / 分钟**，超出返回 429，前端提示「请求过于频繁」
+- 同时最多 4 个问答在跑，超出返回 503
+- 单次提问 ≤ 200 字，召回条数 1–8，请求体 ≤ 64KB
+
+### 临时关闭
+
+```bash
+# 只停 AI，原生搜索不受影响：前端会显示「AI 回答失败」，下方结果照常
+ssh baimaoyun "systemctl stop qutwiki-rag"
+
+# 恢复
+ssh baimaoyun "systemctl start qutwiki-rag"
+```
+
+彻底移除功能：删掉 `MyLayout.vue` 里的 `<RagSearch />` 与 `theme/index.ts` 的注册即可，
+原生搜索不依赖本功能的任何代码。

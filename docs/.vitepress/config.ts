@@ -309,6 +309,16 @@ export default defineConfig({
     customLogger: logger,
     envDir: resolve(docsRoot, '..'),
     plugins: [sidebarWatchPlugin()],
+    server: {
+      // 本地开发直接打 RAG 服务，避免跨域；生产由 wiki 的 nginx 反代 /api/rag/
+      proxy: {
+        '/api/rag': {
+          target: process.env.RAG_API_TARGET || 'http://127.0.0.1:9010',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api\/rag/, '/api'),
+        },
+      },
+    },
     build: {
       chunkSizeWarningLimit: 1100,
     },

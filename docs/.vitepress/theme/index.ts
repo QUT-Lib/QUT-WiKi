@@ -8,6 +8,7 @@ import MapView from './components/MapView.vue'
 import FoodCards from './components/FoodCards.vue'
 import PosterCards from './components/PosterCards.vue'
 import GitHistory from './components/GitHistory.vue'
+import RagSearch from './components/RagSearch.vue'
 import './style.css'
 
 export default {
@@ -23,5 +24,6 @@ export default {
     app.component('FoodCards', FoodCards)
     app.component('PosterCards', PosterCards)
     app.component('GitHistory', GitHistory)
+    app.component('RagSearch', RagSearch)
   },
 }

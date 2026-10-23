@@ -6,6 +6,7 @@ import Contributors from './components/Contributors.vue'
 import GitHistory from './components/GitHistory.vue'
 import TwikooComments from './components/TwikooComments.vue'
 import SiteStats from './components/SiteStats.vue'
+import RagSearch from './components/RagSearch.vue'
 
 const { frontmatter } = useData()
 const route = useRoute()
@@ -360,6 +361,7 @@ onUnmounted(() => {
     </DefaultTheme.Layout>
   </div>
   <SiteStats />
+  <RagSearch />
   <Teleport to="body">
     <div v-if="visible" class="img-viewer-bg" @click="close">
       <button class="img-viewer-close" @click="close">&times;</button>

@@ -574,3 +574,9 @@ mark.search-term-highlight.search-term-fade {
     max-width: 940px !important;
   }
 }
+
+/* 站内 AI 问答：注入原生搜索框的挂载点。
+   display: contents 让卡片直接成为 .shell 的 flex 子项；没有内容时不占位。 */
+.rag-search-host {
+  display: contents;
+}
