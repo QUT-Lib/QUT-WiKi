@@ -321,10 +321,3 @@ docs: 补充参与编写说明
 
 </Gallery>
 
-
-
-## 通过**飞书**流程
-- 欢迎您使用 [**飞书**](https://ycnbhi79uv2d.feishu.cn/wiki/YrIOwlkXlidu4zkAeOjcMP7XnFg?from=from_copylink) 进行 [**QUTWiKi**](https://wiki.quters.top) 的编写工作。
-- 在左侧三栏有**序言，新生入学，校园生活**三个分区，您可以在其中修订文章或者新增篇目。
-- 由于我不会经常登录飞书进行文档的查阅，所以如果您对文档有所更改，欢迎进入 [**QUTWiKi**](https://wiki.quters.top) 的项目组QQ群（**752307273**）进行反馈，或者联系我的个人邮箱说明情况（[**lucasandrew0120@outlook.com**](mailto:lucasandrew0120@outlook.com)）
-- 反馈时请说明修改时间，修改人名称和修改内容
