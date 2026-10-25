@@ -1,15 +1,17 @@
 <script setup>
 import DefaultTheme from 'vitepress/theme'
-import { useData, useRoute } from 'vitepress'
+import { useData, useRoute, useRouter } from 'vitepress'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Contributors from './components/Contributors.vue'
 import GitHistory from './components/GitHistory.vue'
 import TwikooComments from './components/TwikooComments.vue'
 import SiteStats from './components/SiteStats.vue'
 import RagSearch from './components/RagSearch.vue'
+import { flashAnchor, resolveHashElement } from './line-anchors'
 
 const { frontmatter } = useData()
 const route = useRoute()
+const router = useRouter()
 const twikooEnvId = import.meta.env.VITE_TWIKOO_ENV_ID
 
 const sidebarDrawerEnabled = computed(() => frontmatter.value.sidebarDrawer === true)
@@ -256,9 +258,22 @@ function applyHighlight(query, hash) {
   const terms = query.split(/\s+/).filter(Boolean)
   const marks = wrapMatches(doc, terms)
   if (!marks.length) return
-  if (!hash) {
-    marks[0].scrollIntoView({ block: 'center', behavior: 'smooth' })
+
+  // 有 hash 时，VitePress 只会滚到小节标题；这里把第一个命中的词滚到视口中间，
+  // 这样普通搜索也能落到具体那一行，而不是停在小节开头。
+  const anchor = hash ? resolveHashElement(hash) : null
+  let target = anchor ? null : marks[0]
+  if (anchor) {
+    for (const mark of marks) {
+      if (anchor.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        target = mark
+        break
+      }
+    }
   }
+  if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  else if (anchor) anchor.scrollIntoView({ block: 'start', behavior: 'smooth' })
+
   highlightTimer = setTimeout(() => {
     marks.forEach((mark) => mark.classList.add('search-term-fade'))
     highlightTimer = setTimeout(unwrapHighlights, HIGHLIGHT_FADE)
@@ -329,6 +344,22 @@ onMounted(() => {
   document.addEventListener('keydown', onKeydown)
   migrateDetailedSearchDefault()
   warmupLocalSearch()
+  // RAG 引用、手动链接里的 #L42 / #img-xxx 落地后闪一下目标块
+  router.onAfterRouteChange = (to) => {
+    let hash = ''
+    try {
+      hash = new URL(to, location.origin).hash
+    } catch {}
+    if (/^#L\d+$/.test(hash) || hash.startsWith('#img-')) {
+      flashAnchor(hash, { scroll: true })
+    }
+  }
+  // 首次带锚点打开页面时浏览器会自己滚动，但不会经过 onAfterRouteChange；
+  // 延后一点，等 Vue hydration 完成后再高亮，避免刚加上的 class 被替换掉。
+  if (/^#(?:L\d+|img-)/.test(location.hash)) {
+    const initialHash = location.hash
+    window.setTimeout(() => flashAnchor(initialHash, { scroll: true }), 250)
+  }
 })
 
 onUnmounted(() => {

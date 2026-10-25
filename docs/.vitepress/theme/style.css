@@ -3,6 +3,42 @@
   --vp-z-index-nav: 45;
 }
 
+/* 源文件行锚点：0 高度的定位点，不占布局 */
+.line-anchor {
+  display: block;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
+}
+
+[id^='L'][data-src-line],
+img[id^='img-'] {
+  scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
+}
+
+/* RAG 引用 / 行号链接落点高亮 */
+@keyframes line-target-flash {
+  0% {
+    background-color: rgba(1, 93, 149, 0.18);
+    box-shadow: 0 0 0 3px rgba(1, 93, 149, 0.22);
+  }
+  70% {
+    background-color: rgba(1, 93, 149, 0.08);
+    box-shadow: 0 0 0 3px rgba(1, 93, 149, 0.08);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+.line-target-flash {
+  border-radius: 0.3rem;
+  animation: line-target-flash 3.2s ease-out forwards;
+}
+
 body::before {
   content: '';
   position: fixed;

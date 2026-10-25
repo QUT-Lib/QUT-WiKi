@@ -688,7 +688,8 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 | 输入提问句（含「怎么 / 如何 / 在哪 / 是什么 / 为什么 / 吗 / ？」等）后回车 | 顶部出现 AI 回答，下方照常列出站内结果 |
 | 输入关键词（如「校园卡」）后回车 | 与原生搜索一致，直接进入选中的页面 |
 | `Ctrl / ⌘ + Enter` | 强制走 AI，不看是否为提问句 |
-| 点击回答里的 `[1]` 角标或底部参考条目 | 站内跳转到对应文章、定位到锚点 |
+| 点击回答里的 `[1]` 角标或底部参考条目 | 站内跳转到对应文章，并精准落到引用所在的正文行（目标会短暂高亮） |
+| 点击回答里的 `[图1-2]` 角标 | 跳转到原文中的那张图片，而不是打开图床原图 |
 | 「重新生成」/「收起」 | 重新提问 / 折叠答案，留出空间看搜索结果 |
 | `Esc` | 关闭弹窗（原生逻辑不变） |
 
@@ -713,17 +714,27 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 ```
 
 - 检索、拼接、生成全部在服务端完成，**前端不持有任何密钥**
-- 语料为本站 218 个块（43 篇文档 + 5 张表格），只覆盖本站内容，不会拿外部知识作答
-- 每条回答的引用都带页面路径与锚点，提示词要求「资料里没有就说没有」
+- 语料为本站 230 个块（43 篇文档 + 5 张表格），只覆盖本站内容，不会拿外部知识作答
+- 每条回答的引用都带页面路径和源文件行号（`#L42`），能直接定位到正文块；图片引用使用 `#img-<哈希>-<行号>` 锚点
+- 提示词要求「资料里没有就说没有」
+
+### 精准跳转原理
+
+构建时为每个块级元素生成 `id="L<源文件行号>"`（标题、段落、列表项、表格行、代码块等），
+因此站内搜索、RAG 引用以及手动分享的 `#L42` 链接都能落到具体那一行；图片则用图片地址
+哈希加行号生成 `id="img-<哈希>-<行号>"`，同一张图在页面里出现多次也能指到正确位置。
+跳转完成后目标块会短暂高亮，普通搜索还会把命中的关键词滚动到视口中间。
 
 ### 相关文件
 
 | 文件 | 作用 |
 |------|------|
 | `docs/.vitepress/theme/components/RagSearch.vue` | 把 AI 卡片注入原生搜索弹窗，接管提问型查询的回车 |
-| `docs/.vitepress/theme/MyLayout.vue` | 全站挂载 `<RagSearch />` |
+| `docs/.vitepress/theme/MyLayout.vue` | 全站挂载 `<RagSearch />`，处理搜索命中与锚点高亮 |
+| `docs/.vitepress/plugins/source-lines.ts` | 为正文块生成 `#L<行号>` 锚点，并给图片生成稳定 id |
+| `docs/.vitepress/theme/line-anchors.ts` | 前端解析 `#L` / `#img-` 锚点并高亮目标 |
 | `docs/.vitepress/theme/index.ts` | 注册组件 |
-| `docs/.vitepress/theme/style.css` | 挂载点 `.rag-search-host { display: contents }` |
+| `docs/.vitepress/theme/style.css` | 挂载点与锚点高亮样式（`.rag-search-host { display: contents }`） |
 | `docs/.vitepress/config.ts` | 开发环境把 `/api/rag` 代理到本地 RAG 服务（`RAG_API_TARGET`，默认 `http://127.0.0.1:9010`） |
 
 生产环境走同源：`https://wiki.quters.top/api/rag/*` 由阿里云 nginx 反代到白猫云的问答服务，

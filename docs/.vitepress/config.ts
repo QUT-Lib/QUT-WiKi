@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import taskLists from 'markdown-it-task-lists'
 import { xlsxTablePlugin } from './plugins/xlsx-table.ts'
 import { flinkBlockPlugin } from './plugins/flink-block.ts'
+import { fnv1a32, sourceLinesPlugin } from './plugins/source-lines.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const docsRoot = resolve(__dirname, '..')
@@ -340,6 +341,7 @@ export default defineConfig({
   markdown: {
     config: (md) => {
       md.use(taskLists)
+      md.use(sourceLinesPlugin)
       md.use(xlsxTablePlugin, docsRoot)
       md.use(flinkBlockPlugin)
       md.core.ruler.push('word_count', (state) => {
@@ -365,6 +367,9 @@ export default defineConfig({
       md.renderer.rules.image = (tokens, idx, options, env, self) => {
         const token = tokens[idx]
         const alt = token.content || token.attrGet('alt') || ''
+        // 与 RAG 语料里的 images[].id 对应，引用里的 [图n-i] 可以直达原图
+        const src = token.attrGet('src') || ''
+        if (src && !token.attrGet('id')) token.attrSet('id', `img-${fnv1a32(src)}`)
         let html = origImg(tokens, idx, options, env, self)
         if (alt) html += `<span class="img-caption">${md.utils.escapeHtml(alt)}</span>`
         return html

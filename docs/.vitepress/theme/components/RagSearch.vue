@@ -14,8 +14,8 @@ const API = ((import.meta.env.VITE_RAG_API as string | undefined) || '/api/rag')
 const MAX_QUESTION = 200
 const QUESTION_HINT = /([?？]|怎么|如何|怎样|在哪|哪里|哪儿|是什么|为什么|能不能|可不可以|是否|多少|几点|几天|多久|什么时候|哪个|哪些|吗[。！!]?$)/
 
-type RagImage = { alt?: string, src: string }
-type RagRef = { n: number, title: string, section?: string, url: string, type?: string, images?: RagImage[] }
+type RagImage = { alt?: string, src: string, id?: string }
+type RagRef = { n: number, title: string, section?: string, url: string, anchor?: string, line?: number, type?: string, images?: RagImage[] }
 
 const host = ref<HTMLElement | null>(null)
 const query = ref('')
@@ -47,9 +47,15 @@ function inline(text: string, list?: RagRef[]): string {
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/\[图(\d+)-(\d+)\]/g, (whole, n, i) => {
-    const image = list?.[Number(n) - 1]?.images?.[Number(i) - 1]
-    if (!image) return `<span class="rag-tag">图${n}-${i}</span>`
-    return `<a class="rag-tag" href="${esc(image.src)}" target="_blank" rel="noopener">图${n}-${i}</a>`
+    const ref = list?.[Number(n) - 1]
+    const image = ref?.images?.[Number(i) - 1]
+    if (!ref || !image) return `<span class="rag-tag">图${n}-${i}</span>`
+    // 旧索引没有图片锚点 id 时退回打开原图，避免跳到错误位置
+    if (!image.id) {
+      return `<a class="rag-tag" href="${esc(image.src)}" target="_blank" rel="noopener" title="打开原图">图${n}-${i}</a>`
+    }
+    const path = `${pagePathOf(ref)}#${image.id}`
+    return `<a class="rag-tag" href="${esc(path)}" data-rag-path="${esc(path)}" target="_self" title="在原文中查看这张图片">图${n}-${i}</a>`
   })
   html = html.replace(/\[(\d+(?:\s*[,，]\s*\d+)*)\]/g, (whole, nums: string) => nums
     .split(/[,，]/)
@@ -143,13 +149,24 @@ const shownRefs = computed(() => {
   return picked.length ? picked : list
 })
 
-function pathOf(ref: RagRef): string {
+function pagePathOf(ref: RagRef): string {
   try {
     const url = new URL(ref.url, location.origin)
-    return url.pathname + url.hash
+    return url.pathname
   } catch {
-    return ref.url
+    return String(ref.url || '').split('#')[0]
   }
+}
+
+function pathOf(ref: RagRef): string {
+  const page = pagePathOf(ref)
+  let anchor = ref.anchor || ''
+  if (!anchor && ref.url) {
+    try {
+      anchor = new URL(ref.url, location.origin).hash.replace(/^#/, '')
+    } catch {}
+  }
+  return anchor ? `${page}#${anchor}` : page
 }
 
 function refPath(ref: RagRef): string {
