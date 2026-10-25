@@ -271,8 +271,17 @@ function applyHighlight(query, hash) {
       }
     }
   }
-  if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' })
-  else if (anchor) anchor.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  if (target) {
+    target.scrollIntoView({ block: 'center', behavior: 'auto' })
+    // VitePress 自己也会在 nextTick 里滚到锚点，慢网络下可能晚于这里；
+    // 稍后再校正一次，避免最终停在小节标题而不是命中位置。
+    window.setTimeout(() => {
+      if (!target.isConnected) return
+      target.scrollIntoView({ block: 'center', behavior: 'auto' })
+    }, 500)
+  } else if (anchor) {
+    anchor.scrollIntoView({ block: 'start', behavior: 'auto' })
+  }
 
   highlightTimer = setTimeout(() => {
     marks.forEach((mark) => mark.classList.add('search-term-fade'))
@@ -320,7 +329,10 @@ function startHighlight(href) {
       return
     }
     if (!doc) return
-    applyHighlight(query, hash)
+    // 给 VitePress 自己的锚点滚动让出一拍，避免两边抢滚动位置
+    setTimeout(() => {
+      if (token === highlightToken) applyHighlight(query, hash)
+    }, 180)
   }
   setTimeout(tick, 0)
 }
