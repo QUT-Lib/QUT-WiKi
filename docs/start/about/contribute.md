@@ -6,6 +6,19 @@ top: 1
 
 本指南介绍如何向青理 Wiki（QUTWiKi）贡献内容。
 
+## 版权与许可
+
+提交内容前请了解本项目的许可方式：
+
+| 内容类型 | 许可协议 |
+| --- | --- |
+| 文档内容（文章、图片、图表、数据等） | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans) |
+| 程序代码（主题、配置、脚本、服务等） | [MIT](https://github.com/QUT-Lib/QUT-WiKi/blob/main/LICENSE) |
+
+- 您提交的文档内容，除特别声明外，视为同意以 **CC BY-NC-SA 4.0** 协议发布，允许他人在署名且非商业用途的前提下传播与改编。
+- 您提交的代码，视为同意以 **MIT** 协议发布。
+- 请勿提交侵犯他人著作权、未获授权的内容。若引用了外部资料，请注明来源并确认其许可允许转载。
+
 ## 通过**邮箱**
 
 如果您有文档需要提交，但不熟悉 Git 或 GitHub，也可以通过邮箱发送到这个邮箱: [**lucasandrew0120@outlook.com**](mailto:lucasandrew0120@outlook.com)。文档格式Markdown（.md）或Word（.docx）均可，若有图片请打包发送并标明插入位置。收到后我会帮您提交到仓库。

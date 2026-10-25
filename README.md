@@ -23,6 +23,22 @@ npm run dev       # 启动开发服务器 http://localhost:5173
 
 详见 [参与编写](https://wiki.quters.top/start/about/contribute) 页面，内容涵盖环境准备、文档规范、提交流程等完整指引。
 
+## 许可证
+
+本项目按内容类型采用不同的开源许可：
+
+| 范围 | 许可协议 | 说明 |
+| --- | --- | --- |
+| 文档内容 | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans) | `docs/` 目录下的全部文章、图片、图表与数据文件，以及本 README 等说明性文档，详见 [`LICENSE-docs`](LICENSE-docs) |
+| 程序代码 | [MIT](LICENSE) | VitePress 主题与配置、构建脚本、腾讯文档同步服务（如 `docs/.vitepress/`、`docs/scripts/`、`code/`、`build.ps1`） |
+
+简单来说：
+
+- **引用、转载文档内容**：请注明来源「青理 Wiki（QUTWiKi）」并附上原文链接；不得用于商业用途；若基于原文改编，需以相同的 CC BY-NC-SA 4.0 协议发布。
+- **使用程序代码**：可自由使用、修改、分发甚至商用，只需保留原始版权声明与许可声明。
+
+文档内容中的第三方图片、数据或引用材料，其版权归原作者所有，不适用上述许可。
+
 
 ## 致谢
 

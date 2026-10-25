@@ -2,6 +2,7 @@
   "name": "qutwiki",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "node docs/.vitepress/scripts/gen-contributors.mjs && vitepress dev docs",

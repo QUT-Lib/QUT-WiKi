@@ -2,7 +2,17 @@ MIT License
 
 Copyright (c) 2026 LucasAndrew0120
 
-This license applies to the source code of this repository (configuration files, scripts, theme code, etc.). The documentation content in the docs/ directory is licensed under CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/
+This license applies to the source code of this repository: the VitePress theme and
+configuration, build scripts, and the Tencent Docs sync service (for example
+docs/.vitepress/, docs/scripts/, code/ and build.ps1).
+
+The documentation content of this repository is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0):
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+"Documentation content" means all articles, images, charts and data files under the
+docs/ directory, together with this README and other explanatory documents. The full
+legal code of CC BY-NC-SA 4.0 is provided in the LICENSE-docs file.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
