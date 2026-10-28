@@ -5,3 +5,9 @@ docs/.vitepress/dist/** linguist-generated=true
 docs/.vitepress/cache/** linguist-generated=true
 docs/.http_cache/** linguist-generated=true
 docs/**/.playwright-mcp/** linguist-generated=true
+
+# RAG 发布脚本在 Linux 服务器运行，Windows checkout 也保留 LF。
+code/rag/*.sh text eol=lf
+code/rag/*.py text eol=lf
+code/rag/tests/*.sh text eol=lf
+.github/workflows/rag-index.yml text eol=lf
