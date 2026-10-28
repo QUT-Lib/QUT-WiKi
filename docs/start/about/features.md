@@ -693,14 +693,7 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 | 「重新生成」/「收起」 | 重新提问 / 折叠答案，留出空间看搜索结果 |
 | `Esc` | 关闭弹窗（原生逻辑不变） |
 
-### 交互细节
-
-- 卡片注入在原生搜索弹窗的 `.shell` 里，不新增悬浮按钮，入口、快捷键、无障碍行为全部沿用 VitePress
-- 输入框占位文字改为「搜索文档，或直接输入问题…」
-- 回答流式输出；同一问题在同一会话内命中缓存，不会重复请求
-- 只展示答案真正引用到的资料；一句都没引用时回退展示全部召回结果
-- AI 失败时提示「下方的站内搜索结果仍然可用」，不阻塞原生搜索
-- 移动端自动隐藏「回车 / Ctrl+Enter」快捷键提示，只保留「问 AI」按钮
+回答流式输出，同一会话内缓存相同问题；移动端可点击「问 AI」。AI 请求失败不影响普通搜索。
 
 ### 工作方式
 
@@ -708,77 +701,61 @@ https://pic1.imgdb.cn/i/0349E4NqLje1oLHNowvJ4R.png
 搜索框（RagSearch.vue）
   └─ POST /api/rag/ask
        ├─ 智谱 embedding-3 编码问题
-       ├─ BM25 + 向量 RRF 融合（vector_first，取 top6）
+        ├─ 向量优先检索 + BM25 关键词补充（默认取 6 条）
        ├─ 系统提示词 + 资料 + 问题 交给生成模型
        └─ LongCat（失败降级 DeepSeek），SSE 流式返回
 ```
 
-- 检索、拼接、生成全部在服务端完成，**前端不持有任何密钥**
-- 语料为本站 230 个块（43 篇文档 + 5 张表格），只覆盖本站内容，不会拿外部知识作答
-- 每条回答的引用都带页面路径和源文件行号（`#L42`），能直接定位到正文块；图片引用使用 `#img-<哈希>-<行号>` 锚点
-- 提示词要求「资料里没有就说没有」
+检索和生成在服务端完成，**前端不持有密钥**。语料来自本站文章、表格等内容，提示词要求根据检索资料作答，资料不足时明确说明；答案仍需以引用原文为准。
 
-### 精准跳转原理
+构建时为正文块生成 `#L<源文件行号>` 锚点，为图片生成 `#img-<地址哈希>-<行号>` 锚点。点击引用可跳到原文对应位置并短暂高亮。
 
-构建时为每个块级元素生成 `id="L<源文件行号>"`（标题、段落、列表项、表格行、代码块等），
-因此站内搜索、RAG 引用以及手动分享的 `#L42` 链接都能落到具体那一行；图片则用图片地址
-哈希加行号生成 `id="img-<哈希>-<行号>"`，同一张图在页面里出现多次也能指到正确位置。
-跳转完成后目标块会短暂高亮，普通搜索还会把命中的关键词滚动到视口中间。
+### 索引自动更新
+
+索引更新与站点构建使用**两个独立的 GitHub Actions 工作流**。向 `contribute` 推送语料或 RAG 脚本变更后，「更新 RAG 索引」自动执行：
+
+```text
+同步腾讯表格 → 清洗语料、重新切片 → 与线上索引比较
+  ├─ 向量化文本不变：复用旧向量，更新行号等元数据
+  ├─ 新增或变化：调用智谱 embedding-3 生成向量
+  └─ 已删除：从新索引移除
+        ↓
+校验完整新索引 → 受限 SSH 上传 → 切换版本并重启服务
+```
+
+切片由 Actions 中的 Python 脚本完成，智谱只负责向量化。缓存依据**实际输入文本、模型、维度和预处理版本**，不依赖可能随插入段落而变化的 chunk 序号。编写者只需修改原文，无需手动维护 chunks。
+
+服务器使用 `chunks.jsonl`、`vectors.npy` 和 `manifest.json` 组成的文件索引。切片、比较和组装都在 Actions 执行，服务器只负责传输、校验和加载。以约 230 块、1024 维计算，向量文件约 0.9 MiB，完整索引约 1.8 MB，更新负担很小。
+
+发布使用专用密钥和低权限账号，只允许读取索引、上传候选版本和调用固定发布器。版本校验与发布锁防止过期任务覆盖新索引；服务重启或健康检查失败时自动回滚。发布会短暂影响 AI 问答，旧版本保留供回滚，需定期清理。
+
+仅修改外部腾讯文档时，需要手动运行「更新 RAG 索引」；每次流程都会重新同步表格，同步失败则停止发布。
 
 ### 相关文件
 
 | 文件 | 作用 |
 |------|------|
 | `docs/.vitepress/theme/components/RagSearch.vue` | 把 AI 卡片注入原生搜索弹窗，接管提问型查询的回车 |
-| `docs/.vitepress/theme/MyLayout.vue` | 全站挂载 `<RagSearch />`，处理搜索命中与锚点高亮 |
-| `docs/.vitepress/plugins/source-lines.ts` | 为正文块生成 `#L<行号>` 锚点，并给图片生成稳定 id |
-| `docs/.vitepress/theme/line-anchors.ts` | 前端解析 `#L` / `#img-` 锚点并高亮目标 |
-| `docs/.vitepress/theme/index.ts` | 注册组件 |
-| `docs/.vitepress/theme/style.css` | 挂载点与锚点高亮样式（`.rag-search-host { display: contents }`） |
-| `docs/.vitepress/config.ts` | 开发环境把 `/api/rag` 代理到本地 RAG 服务（`RAG_API_TARGET`，默认 `http://127.0.0.1:9010`） |
+| `docs/.vitepress/plugins/source-lines.ts`、`docs/.vitepress/theme/line-anchors.ts` | 生成正文与图片锚点，处理定位高亮 |
+| `code/rag/extract.py`、`build_index.py` | 抽取切片、复用向量并生成新索引 |
+| `code/rag/ssh-gateway.py`、`deploy-index.sh` | 受限传输、版本切换与失败回滚 |
+| `.github/workflows/rag-index.yml` | 独立的索引更新工作流 |
 
-生产环境走同源：`https://wiki.quters.top/api/rag/*` 由阿里云 nginx 反代到白猫云的问答服务，
-因此不存在跨域。若需要指向别的地址，构建时设置环境变量 `VITE_RAG_API`。
+生产环境由 nginx 将同源 `/api/rag/*` 反代到问答服务；本地开发可通过 `RAG_API_TARGET` 指定后端，默认 `http://127.0.0.1:9010`。
 
 ### 部署与维护
 
-RAG 服务不在本站仓库内，而在 `D:\code\RAG`：
-
-```powershell
-# 站点文章更新后：重新抽取语料、重建智谱索引、上线并重启
-.\deploy\publish.ps1
-
-# 只改了后端代码或提示词，没有动语料
-.\deploy\publish.ps1 -SkipIndex
-```
+索引工具位于本站 `code/rag/`，问答后端仍由 `D:\code\RAG` 单独维护。账号安装、Actions Secrets、本地构建与排障见 [RAG 索引维护说明](https://github.com/QUT-Lib/QUT-WiKi/blob/contribute/code/rag/README.md)。
 
 | 场景 | 操作 |
 |------|------|
 | 看服务状态 | `ssh baimaoyun "systemctl status qutwiki-rag"` |
 | 看日志 | `ssh baimaoyun "journalctl -u qutwiki-rag -n 50 --no-pager"` |
-| 只重启 | `ssh baimaoyun "systemctl restart qutwiki-rag"` |
-| 改问题提示词 | 改 `code/RAG/scripts/ui_profile.py` 后执行 `publish.ps1 -SkipIndex` |
+| 重启 AI | `ssh baimaoyun "systemctl restart qutwiki-rag"`；暂停或恢复时将 `restart` 换为 `stop` 或 `start` |
+| 改后端代码或提示词 | 在 `D:\code\RAG` 修改后运行 `.\deploy\publish.ps1 -SkipIndex` |
 
-> 在 1Panel 面板里重新保存本网站配置时，可能会重写 `conf.d/wiki.quters.top.conf`，
-> 导致 `/api/rag/` 的 include 行丢失（表现为前端 404）。备份在同目录 `.bak.rag`，加回去并 reload 即可。
+> 1Panel 重新保存站点配置可能覆盖 `/api/rag/` 反代，出现 404 时检查 nginx 配置。暂停 AI 服务不影响原生搜索。
 
 ### 限额与防护
 
-- 反代层带 `X-RAG-Token`，服务端二次校验，直接从公网打 8098 无效
-- 服务端口只对阿里云前置机与本机开放，其余来源 iptables 丢弃
-- 按真实 IP 限流 **12 次 / 分钟**，超出返回 429，前端提示「请求过于频繁」
-- 同时最多 4 个问答在跑，超出返回 503
-- 单次提问 ≤ 200 字，召回条数 1–8，请求体 ≤ 64KB
-
-### 临时关闭
-
-```bash
-# 只停 AI，原生搜索不受影响：前端会显示「AI 回答失败」，下方结果照常
-ssh baimaoyun "systemctl stop qutwiki-rag"
-
-# 恢复
-ssh baimaoyun "systemctl start qutwiki-rag"
-```
-
-彻底移除功能：删掉 `MyLayout.vue` 里的 `<RagSearch />` 与 `theme/index.ts` 的注册即可，
-原生搜索不依赖本功能的任何代码。
+问答接口由反代令牌与防火墙限制访问；每个 IP 每分钟最多 12 次问答，全局最多 4 个并发。单次提问不超过 200 字，请求体不超过 64 KiB。
