@@ -1,0 +1,513 @@
+name: 更新 RAG 索引
+
+on:
+  push:
+    branches:
+      - contribute
+    paths:
+      - 'docs/**/*.md'
+      - 'docs/**/*.xlsx'
+      - 'docs/resources/**/*.pdf'
+      - 'docs/.vitepress/theme/components/map-data.js'
+      - 'code/rag/**'
+      - 'docs/scripts/sync-tencent.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/rag-index.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 独立于站点部署；不能取消正在运行的发布，避免 symlink/服务处于中间状态。
+concurrency:
+  group: rag-index
+  cancel-in-progress: false
+
+jobs:
+  index:
+    name: 增量构建并发布 RAG 索引
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONUNBUFFERED: '1'
+
+    steps:
+      - name: 限制手动触发到 contribute
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/contribute'
+        env:
+          TRIGGER_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          echo "::error::workflow_dispatch 仅允许从 contribute 分支运行（当前 $TRIGGER_REF）"
+          exit 1
+
+      - name: 检出 contribute
+        uses: actions/checkout@v5
+        with:
+          ref: contribute
+          fetch-depth: 0
+
+      - name: 记录实际检出的源提交
+        id: source
+        run: |
+          set -euo pipefail
+          SOURCE_COMMIT="$(git rev-parse HEAD)"
+          [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          echo "commit=$SOURCE_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "::notice::源提交 $SOURCE_COMMIT"
+
+      # .http_cache 被 gitignore，干净 checkout 没有腾讯 xlsx；每次索引更新都必须先同步，
+      # 否则抽取会丢失 xlsx 表格块。同步失败即停止，不发布残缺索引。
+      - name: 安装 Node.js（腾讯文档同步）
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 安装同步依赖（腾讯文档同步）
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm ci
+
+      - name: 缓存 Playwright 浏览器（腾讯文档同步）
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: 安装 Playwright Chromium（腾讯文档同步）
+        run: npx playwright install --with-deps chromium
+
+      - name: 同步腾讯文档（不构建 VitePress）
+        run: node docs/scripts/sync-tencent.mjs
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装索引依赖
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r code/rag/requirements-rag.txt
+
+      - name: 运行索引与权限回归测试
+        run: python -m unittest discover -s code/rag/tests
+
+      - name: 准备受限 SSH（专用密钥 + 固定 known_hosts）
+        env:
+          RAG_SSH_KEY: ${{ secrets.RAG_SSH_KEY }}
+          RAG_SSH_HOST: ${{ secrets.RAG_SSH_HOST }}
+          RAG_SSH_PORT: ${{ secrets.RAG_SSH_PORT }}
+          RAG_SSH_USER: ${{ secrets.RAG_SSH_USER }}
+          RAG_SSH_KNOWN_HOSTS: ${{ secrets.RAG_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in RAG_SSH_KEY RAG_SSH_HOST RAG_SSH_PORT RAG_SSH_USER RAG_SSH_KNOWN_HOSTS; do
+            value="${!name:-}"
+            if [[ -z "$value" ]]; then
+              echo "::error::缺少 Secret：$name"
+              exit 1
+            fi
+          done
+          [[ "$RAG_SSH_HOST" =~ ^[A-Za-z0-9._:%-]+$ ]] || { echo "::error::RAG_SSH_HOST 含非法字符"; exit 1; }
+          [[ "$RAG_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::RAG_SSH_USER 含非法字符"; exit 1; }
+          [[ "$RAG_SSH_PORT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::RAG_SSH_PORT 非法"; exit 1; }
+          (( RAG_SSH_PORT >= 1 && RAG_SSH_PORT <= 65535 )) || { echo "::error::RAG_SSH_PORT 越界"; exit 1; }
+          [[ "$RAG_SSH_KEY" == *"PRIVATE KEY"* ]] || { echo "::error::RAG_SSH_KEY 不是私钥"; exit 1; }
+
+          KEY_FILE="$RUNNER_TEMP/rag_ssh_key"
+          KNOWN_FILE="$RUNNER_TEMP/rag_known_hosts"
+          CFG="$RUNNER_TEMP/rag_ssh_config"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$RAG_SSH_KEY" | tr -d '\r' > "$KEY_FILE"
+          printf '%s\n' "$RAG_SSH_KNOWN_HOSTS" | tr -d '\r' > "$KNOWN_FILE"
+          chmod 600 "$KEY_FILE" "$KNOWN_FILE"
+          cat > "$CFG" <<EOF
+          Host rag-target
+            HostName $RAG_SSH_HOST
+            Port $RAG_SSH_PORT
+            User $RAG_SSH_USER
+            IdentityFile $KEY_FILE
+            IdentitiesOnly yes
+            UserKnownHostsFile $KNOWN_FILE
+            StrictHostKeyChecking yes
+            BatchMode yes
+            RequestTTY no
+            ClearAllForwardings yes
+            ForwardAgent no
+            PermitLocalCommand no
+            LogLevel ERROR
+            ServerAliveInterval 30
+            ServerAliveCountMax 3
+          EOF
+          chmod 600 "$CFG"
+          echo "::notice::SSH 目标已固定为 rag-target（仅允许网关三命令）"
+
+      - name: 拉取基线索引（baseline）
+        id: baseline
+        run: |
+          set -euo pipefail
+          CFG="$RUNNER_TEMP/rag_ssh_config"
+          TAR="$RUNNER_TEMP/rag-baseline.tar"
+          BASE="$RUNNER_TEMP/rag-base"
+          rm -rf "$BASE"
+          mkdir -p "$BASE"
+
+          if ! ssh -F "$CFG" rag-target baseline > "$TAR"; then
+            echo "::error::baseline 命令失败"
+            exit 1
+          fi
+          [[ -s "$TAR" ]] || { echo "::error::baseline 返回空流"; exit 1; }
+
+          # 网关约定：普通 tar 流，恰好三个文件且在归档根目录。
+          python - "$TAR" "$BASE" <<'PY'
+          import hashlib
+          import json
+          import sys
+          import tarfile
+          from pathlib import Path
+
+          import numpy as np
+
+          tar_path = Path(sys.argv[1])
+          out_dir = Path(sys.argv[2])
+          expected = {"manifest.json", "chunks.jsonl", "vectors.npy"}
+          limits = {
+              "manifest.json": 8 << 20,
+              "chunks.jsonl": 512 << 20,
+              "vectors.npy": 1 << 30,
+          }
+
+          def fail(message):
+              print(f"::error::{message}")
+              raise SystemExit(1)
+
+          def sha1_file(path):
+              digest = hashlib.sha1()
+              with path.open("rb") as handle:
+                  for block in iter(lambda: handle.read(1 << 20), b""):
+                      digest.update(block)
+              return digest.hexdigest()
+
+          def normalized_name(name):
+              return name[2:] if name.startswith("./") else name
+
+          with tarfile.open(tar_path, "r:*") as archive:
+              members = archive.getmembers()
+              names = set()
+              files = []
+              for member in members:
+                  name = normalized_name(member.name)
+                  # 兼容 tar 自动加入的 "./" 目录项；其余目录一律拒绝。
+                  if member.isdir() and name in ("", "."):
+                      continue
+                  if name not in expected:
+                      fail(f"baseline tar 含非法路径：{member.name!r}")
+                  if not member.isfile():
+                      fail(f"baseline tar 中的 {name} 不是普通文件")
+                  if name in names:
+                      fail(f"baseline tar 重复包含：{name}")
+                  names.add(name)
+                  files.append((member, name))
+              if names != expected:
+                  fail(f"baseline tar 必须恰好包含 {sorted(expected)}，实际 {sorted(names)}")
+              for member, name in files:
+                  if member.size <= 0 or member.size > limits[name]:
+                      fail(f"baseline tar 中的 {name} 大小异常")
+                  source = archive.extractfile(member)
+                  if source is None:
+                      fail(f"无法读取 baseline tar 中的 {name}")
+                  target = out_dir / name
+                  with target.open("wb") as handle:
+                      while True:
+                          chunk = source.read(1 << 20)
+                          if not chunk:
+                              break
+                          handle.write(chunk)
+                  target.chmod(0o644)
+
+          # 三个文件必须来自同一代；即使网关锁实现有误，哈希/形状也能发现混代。
+          try:
+              manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
+          except Exception as exc:  # noqa: BLE001
+              fail(f"baseline manifest 无法解析：{exc}")
+          if not isinstance(manifest, dict):
+              fail("baseline manifest 必须是对象")
+          chunks = manifest.get("chunks")
+          dim = manifest.get("dim")
+          if isinstance(chunks, bool) or not isinstance(chunks, int) or not 0 < chunks <= 2_000_000:
+              fail(f"baseline manifest.chunks 非法：{chunks!r}")
+          if dim != 1024:
+              fail(f"baseline manifest.dim 必须是 1024：{dim!r}")
+          try:
+              vectors = np.load(out_dir / "vectors.npy", allow_pickle=False)
+          except Exception as exc:  # noqa: BLE001
+              fail(f"baseline vectors.npy 无法读取：{exc}")
+          if vectors.shape != (chunks, dim):
+              fail(f"baseline vectors.npy 形状 {vectors.shape} 与 {(chunks, dim)} 不一致")
+          if not np.isfinite(vectors).all():
+              fail("baseline vectors.npy 含 NaN/Inf")
+          rows = 0
+          with (out_dir / "chunks.jsonl").open(encoding="utf-8") as handle:
+              for line in handle:
+                  if line.strip():
+                      rows += 1
+          if rows != chunks:
+              fail(f"baseline chunks.jsonl 行数 {rows} 与 manifest.chunks {chunks} 不一致")
+          for key, filename in (("vectors_sha1", "vectors.npy"), ("chunks_sha1", "chunks.jsonl")):
+              expected_sha1 = manifest.get(key)
+              if expected_sha1 is None:
+                  print(f"::warning::baseline manifest 缺少 {key}，无法校验 {filename} 混代")
+                  continue
+              if not isinstance(expected_sha1, str) or len(expected_sha1) != 40:
+                  fail(f"baseline manifest.{key} 非法")
+              if sha1_file(out_dir / filename) != expected_sha1:
+                  fail(f"baseline {filename} 的 SHA1 与 manifest 不一致（可能三文件混代）")
+          print("::notice::baseline 三文件完整性校验通过")
+          PY
+
+          BASELINE_SHA256="$(sha256sum "$BASE/manifest.json" | awk '{print $1}')"
+          [[ "$BASELINE_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::baseline manifest 哈希非法"; exit 1; }
+          echo "baseline_sha256=$BASELINE_SHA256" >> "$GITHUB_OUTPUT"
+          echo "base_dir=$BASE" >> "$GITHUB_OUTPUT"
+          echo "::notice::baseline manifest sha256=$BASELINE_SHA256"
+
+      - name: 增量构建索引
+        env:
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          BASE_DIR: ${{ steps.baseline.outputs.base_dir }}
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          [[ -n "${ZHIPU_API_KEY:-}" ]] || { echo "::error::缺少 Secret：ZHIPU_API_KEY"; exit 1; }
+          [[ -f code/rag/build_index.py ]] || { echo "::error::构建器不存在：code/rag/build_index.py"; exit 1; }
+
+          OUT="$RUNNER_TEMP/rag-index"
+          rm -rf "$OUT"
+          python code/rag/build_index.py \
+            --wiki-root "$GITHUB_WORKSPACE" \
+            --base-index "$BASE_DIR" \
+            --output "$OUT" \
+            --source-commit "$SOURCE_COMMIT" \
+            --no-corpus \
+            --no-cache
+
+      - name: 校验新索引
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+          BASE_DIR: ${{ steps.baseline.outputs.base_dir }}
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/rag-index"
+          BASE_MANIFEST="$BASE_DIR/manifest.json"
+          python - "$OUT" "$SOURCE_COMMIT" "$BASE_MANIFEST" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          import numpy as np
+
+          out = Path(sys.argv[1])
+          commit = sys.argv[2]
+          base_manifest_path = Path(sys.argv[3])
+          summary_path = Path(sys.argv[4])
+
+          def fail(message):
+              print(f"::error::{message}")
+              raise SystemExit(1)
+
+          def sha1_file(path):
+              digest = hashlib.sha1()
+              with path.open("rb") as handle:
+                  for block in iter(lambda: handle.read(1 << 20), b""):
+                      digest.update(block)
+              return digest.hexdigest()
+
+          for name in ("manifest.json", "chunks.jsonl", "vectors.npy"):
+              path = out / name
+              if not path.is_file() or path.is_symlink():
+                  fail(f"构建输出缺少普通文件：{name}")
+
+          try:
+              manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+          except Exception as exc:  # noqa: BLE001
+              fail(f"manifest.json 无效：{exc}")
+          if not isinstance(manifest, dict):
+              fail("manifest.json 必须是对象")
+          try:
+              base_manifest = json.loads(base_manifest_path.read_text(encoding="utf-8"))
+          except Exception as exc:  # noqa: BLE001
+              fail(f"baseline manifest 无法读取：{exc}")
+          if not isinstance(base_manifest, dict):
+              fail("baseline manifest 必须是对象")
+
+          if manifest.get("source_commit") != commit:
+              fail("manifest.source_commit 与实际检出提交不一致")
+          if manifest.get("profile") != "qut":
+              fail(f"manifest.profile 必须是 qut：{manifest.get('profile')!r}")
+          chunks = manifest.get("chunks")
+          dim = manifest.get("dim")
+          if isinstance(chunks, bool) or not isinstance(chunks, int) or not 0 < chunks <= 2_000_000:
+              fail(f"manifest.chunks 非法：{chunks!r}")
+          if dim != 1024:
+              fail(f"manifest.dim 必须是 1024：{dim!r}")
+          model = manifest.get("model")
+          if model != "zhipu/embedding-3":
+              fail(f"manifest.model 必须是 zhipu/embedding-3：{model!r}")
+          if manifest.get("embed_provider") != "zhipu":
+              fail("manifest.embed_provider 必须是 zhipu（拒绝 fake/其他 provider）")
+          if manifest.get("embed_model") != "embedding-3":
+              fail("manifest.embed_model 必须是 embedding-3")
+          if manifest.get("embed_dim") != 1024:
+              fail("manifest.embed_dim 必须是 1024")
+          if manifest.get("normalized") is not True:
+              fail("manifest.normalized 必须为 true")
+          if manifest.get("dtype") != "float32":
+              fail("manifest.dtype 必须是 float32")
+          if manifest.get("corpus_path") is not None:
+              fail("manifest.corpus_path 必须为 null（发布器只服务三个运行时文件）")
+          # 服务会读取这些配置；只允许与线上 baseline 完全一致，禁止新注入 rerank/ui。
+          for key in ("ui", "rerank", "recommended_mode", "fusion_strategy"):
+              if manifest.get(key) != base_manifest.get(key):
+                  fail(f"manifest.{key} 与线上 baseline 不一致；禁止通过索引新增或修改服务配置")
+          for key in ("vectors_sha1", "chunks_sha1"):
+              value = manifest.get(key)
+              if not isinstance(value, str) or len(value) != 40 or any(c not in "0123456789abcdef" for c in value):
+                  fail(f"manifest.{key} 非法")
+
+          rows = 0
+          ids = set()
+          with (out / "chunks.jsonl").open(encoding="utf-8") as handle:
+              for lineno, line in enumerate(handle, 1):
+                  if not line.strip():
+                      continue
+                  try:
+                      row = json.loads(line)
+                  except ValueError as exc:
+                      fail(f"chunks.jsonl:{lineno} 非法：{exc}")
+                  if not isinstance(row, dict):
+                      fail(f"chunks.jsonl:{lineno} 不是对象")
+                  chunk_id = row.get("id")
+                  if not isinstance(chunk_id, str) or not chunk_id:
+                      fail(f"chunks.jsonl:{lineno} 缺少 id")
+                  if chunk_id in ids:
+                      fail(f"chunks.jsonl:{lineno} 重复 id：{chunk_id}")
+                  ids.add(chunk_id)
+                  rows += 1
+          if rows != chunks:
+              fail(f"chunks.jsonl 行数 {rows} 与 manifest.chunks {chunks} 不一致")
+
+          try:
+              vectors = np.load(out / "vectors.npy", allow_pickle=False)
+          except Exception as exc:  # noqa: BLE001
+              fail(f"vectors.npy 无法读取：{exc}")
+          if vectors.dtype != np.float32:
+              fail(f"vectors.npy dtype 非法：{vectors.dtype}")
+          if vectors.shape != (chunks, dim):
+              fail(f"vectors.npy 形状 {vectors.shape} 与 {(chunks, dim)} 不一致")
+          if not np.isfinite(vectors).all():
+              fail("vectors.npy 含 NaN/Inf")
+          norms = np.linalg.norm(vectors, axis=1)
+          if not np.allclose(norms, 1.0, rtol=0.0, atol=1e-3):
+              fail("vectors.npy 存在未归一化向量")
+          if sha1_file(out / "vectors.npy") != manifest["vectors_sha1"]:
+              fail("vectors.npy SHA1 与 manifest 不一致")
+          if sha1_file(out / "chunks.jsonl") != manifest["chunks_sha1"]:
+              fail("chunks.jsonl SHA1 与 manifest 不一致")
+
+          cache = manifest.get("embedding_cache") or {}
+          lines = [
+              "### RAG 索引构建完成",
+              "",
+              f"- 源提交：`{commit}`",
+              f"- 块数：{chunks}",
+              f"- 维度：{dim}",
+              f"- 模型：`{model}`",
+          ]
+          if isinstance(cache, dict) and "embedded_rows" in cache:
+              lines.append(f"- 本次新编码：{cache.get('embedded_rows')} 行")
+              lines.append(f"- 复用旧向量：{cache.get('reused_rows')} 行")
+          lines += ["", "已通过本地索引校验，准备流式上传。", ""]
+          with summary_path.open("a", encoding="utf-8") as handle:
+              handle.write("\n".join(lines))
+          print("::notice::新索引校验通过")
+          PY
+
+      - name: 上传新索引（upload）
+        id: upload
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          RELEASE="${SOURCE_COMMIT}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          [[ "$RELEASE" =~ ^[0-9a-f]{40}-[0-9]{1,20}-[0-9]{1,20}$ ]] \
+            || { echo "::error::release 名称非法：$RELEASE"; exit 1; }
+
+          CFG="$RUNNER_TEMP/rag_ssh_config"
+          OUT="$RUNNER_TEMP/rag-index"
+          TAR="$RUNNER_TEMP/rag-index.tar"
+          tar -C "$OUT" --format=ustar -cf "$TAR" manifest.json chunks.jsonl vectors.npy
+          LIST="$(tar -tf "$TAR" | sort)"
+          EXPECTED=$'chunks.jsonl\nmanifest.json\nvectors.npy'
+          [[ "$LIST" == "$EXPECTED" ]] || { echo "::error::待上传 tar 内容不符合约定"; exit 1; }
+
+          if ! ssh -F "$CFG" rag-target upload "$RELEASE" < "$TAR"; then
+            echo "::error::upload 命令失败"
+            exit 1
+          fi
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+          echo "::notice::已上传 release=$RELEASE"
+
+      - name: 确认 contribute 未被更新（防旧提交覆盖）
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          REMOTE_HEAD="$(git ls-remote origin refs/heads/contribute | awk '{print $1}')"
+          [[ "$REMOTE_HEAD" =~ ^[0-9a-f]{40}$ ]] \
+            || { echo "::error::无法读取 contribute 远端 HEAD"; exit 1; }
+          if [[ "$REMOTE_HEAD" != "$SOURCE_COMMIT" ]]; then
+            echo "::error::contribute 已从 $SOURCE_COMMIT 更新为 $REMOTE_HEAD，拒绝发布旧索引"
+            exit 1
+          fi
+          echo "::notice::contribute HEAD 仍为 $SOURCE_COMMIT，可以发布"
+
+      - name: 发布（publish，校验 + flock + 原子切换）
+        env:
+          RELEASE: ${{ steps.upload.outputs.release }}
+          BASELINE_SHA256: ${{ steps.baseline.outputs.baseline_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE" =~ ^[0-9a-f]{40}-[0-9]{1,20}-[0-9]{1,20}$ ]] \
+            || { echo "::error::release 名称非法"; exit 1; }
+          [[ "$BASELINE_SHA256" =~ ^[0-9a-f]{64}$ ]] \
+            || { echo "::error::baseline 哈希非法"; exit 1; }
+
+          CFG="$RUNNER_TEMP/rag_ssh_config"
+          if ! ssh -F "$CFG" rag-target publish "$RELEASE" "$BASELINE_SHA256"; then
+            echo "::error::publish 失败；若日志提示 baseline 已变化，请重新运行工作流"
+            exit 1
+          fi
+
+      - name: 写入发布摘要
+        if: success()
+        env:
+          RELEASE: ${{ steps.upload.outputs.release }}
+          BASELINE_SHA256: ${{ steps.baseline.outputs.baseline_sha256 }}
+        run: |
+          set -euo pipefail
+          {
+            echo ""
+            echo "### RAG 索引已发布"
+            echo ""
+            echo "- release：\`$RELEASE\`"
+            echo "- baseline manifest sha256：\`$BASELINE_SHA256\`"
+            echo "- 服务器：通过受限网关 \`baseline\` / \`upload\` / \`publish\` 完成"
+            echo "- 健康检查：\`http://127.0.0.1:8098/api/health\`"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
