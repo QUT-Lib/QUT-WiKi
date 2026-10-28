@@ -1,0 +1,9 @@
+# QUTWiKi RAG 增量索引依赖（最小集）
+# 安装： py -3 -m pip install -r code/rag/requirements-rag.txt
+numpy>=1.24
+openpyxl>=3.1
+requests>=2.31
+
+# CI 安装 PDF 文本抽取依赖，避免新增有文本层的 PDF 被跳过。
+# 扫描件仍需 OCR，提取器会告警。
+pymupdf>=1.24
