@@ -19,6 +19,8 @@ npm run dev       # 启动开发服务器 http://localhost:5173
 
 网站基于 [VitePress](https://vitepress.dev/) 构建，文档使用 Markdown 编写。
 
+RAG 搜索索引通过独立的 GitHub Actions 流程增量更新：自动切片、复用未变化的向量，只对新增或变化的文本调用智谱 Embedding。部署账号、Secrets 和本地运行方法见 [RAG 索引维护说明](code/rag/README.md)。
+
 ## 参与编写
 
 详见 [参与编写](https://wiki.quters.top/start/about/contribute) 页面，内容涵盖环境准备、文档规范、提交流程等完整指引。
@@ -74,7 +76,8 @@ npm run dev       # 启动开发服务器 http://localhost:5173
 ├── README.md
 ├── vendor/                     # 已核验并固定摘要的第三方依赖归档
 │   └── xlsx-0.20.3.tgz
-├── code/                       # 腾讯文档 XLSX 同步服务
+├── code/                       # 同步服务与 RAG 索引工具
+│   ├── rag/                    # 切片、增量向量化与受限 SSH 发布
 │   ├── Dockerfile              # 非 root 生产镜像
 │   ├── server.mjs              # HTTP 服务入口
 │   ├── xlsx-sync.mjs           # Chromium 同步及资源限制
