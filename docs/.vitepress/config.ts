@@ -196,14 +196,10 @@ function buildStartSidebar(): DefaultTheme.SidebarItem[] {
       return orderA - orderB || a.name.localeCompare(b.name)
     })
   for (const dir of dirs) {
-    const hasChildDirs = readdirSync(dir.full).some((name) => {
-      const full = join(dir.full, name)
-      return statSync(full).isDirectory() && hasMarkdown(full)
-    })
     groups.push({
       text: getDirectoryLabel(dir.name),
-      // 有子目录的一级分组默认展开，露出二级分组；没有子目录的一级分组默认收起。
-      collapsed: !hasChildDirs,
+      // 一级分组默认全部收起，仅保留一级标题。
+      collapsed: true,
       items: buildItems(dir.full, dir.name),
     })
   }
