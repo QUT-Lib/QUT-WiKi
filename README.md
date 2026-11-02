@@ -136,7 +136,6 @@ RAG 搜索索引通过独立的 GitHub Actions 流程增量更新：自动切片
         ├── preface/
         │   └── introduction.md       # 前言 / 项目介绍
         ├── newstudent/               # 新生入学
-        │   ├── 2026-teacher-phone.md      # 2026 教师联系方式
         │   ├── admission-checklist.md     # 入学清单
         │   ├── admission-resources.md     # 入学资源
         │   ├── anti-fraud.md              # 防诈骗指南
@@ -144,6 +143,7 @@ RAG 搜索索引通过独立的 GitHub Actions 流程增量更新：自动切片
         │   ├── campus-card.md             # 校园卡
         │   ├── campus-network.md          # 校园网
         │   ├── military-assistant.md      # 军训助手
+        │   ├── teacher-office-phone.md    # 辅导员办公室电话
         │   └── transportation.md          # 交通出行
         ├── campus-life/              # 校园生活
         │   ├── competition/          # 学科竞赛
