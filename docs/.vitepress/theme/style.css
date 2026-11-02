@@ -57,6 +57,11 @@ body::before {
   font-weight: 700 !important;
 }
 
+/* 侧边栏标题与右侧开合箭头垂直居中 */
+.VPSidebarItem > .item {
+  align-items: center;
+}
+
 .VPSidebarItem.level-1 > .item .text {
   font-size: 16px !important;
   font-weight: 400 !important;

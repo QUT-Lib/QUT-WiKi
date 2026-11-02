@@ -162,7 +162,7 @@ function buildItems(dir: string, relativeDir: string): DefaultTheme.SidebarItem[
     const childRelative = relativeDir ? `${relativeDir}/${child.name}` : child.name
     items.push({
       text: getDirectoryLabel(childRelative),
-      collapsed: false,
+      collapsed: true,
       items: buildItems(child.full, childRelative),
     })
   }
@@ -196,9 +196,14 @@ function buildStartSidebar(): DefaultTheme.SidebarItem[] {
       return orderA - orderB || a.name.localeCompare(b.name)
     })
   for (const dir of dirs) {
+    const hasChildDirs = readdirSync(dir.full).some((name) => {
+      const full = join(dir.full, name)
+      return statSync(full).isDirectory() && hasMarkdown(full)
+    })
     groups.push({
       text: getDirectoryLabel(dir.name),
-      collapsed: false,
+      // 有子目录的一级分组默认展开，露出二级分组；没有子目录的一级分组默认收起。
+      collapsed: !hasChildDirs,
       items: buildItems(dir.full, dir.name),
     })
   }
