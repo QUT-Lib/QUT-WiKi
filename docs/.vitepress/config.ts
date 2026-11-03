@@ -39,13 +39,20 @@ const directoryLabels: Record<string, string> = {
   'campus-life/daily-life': '生活日常',
   'campus-life/qut-organization': 'QUT-组织',
   'campus-life/competition': '竞赛--战队',
+  feiyue: '飞跃手册',
+  'feiyue/rpa': '保研',
+  'feiyue/pee': '考研',
+  'feiyue/cse': '考公',
+  'feiyue/emp': '就业',
+  'feiyue/sa': '留学',
   about: '关于',
 }
 // 顶层分组的展示顺序，未列出的目录排在最后并按名称排序。
-const sectionOrder = ['preface', 'newstudent', 'campus-life', 'about']
+const sectionOrder = ['preface', 'newstudent', 'campus-life', 'feiyue', 'about']
 // 子目录的展示顺序，未列出的目录排在最后并按名称排序。
 const subSectionOrder: Record<string, string[]> = {
   'campus-life': ['systems', 'study', 'daily-life', 'qut-organization', 'competition'],
+  feiyue: ['rpa', 'pee', 'cse', 'emp', 'sa'],
 }
 
 function getDirectoryLabel(relativeDir: string): string {
