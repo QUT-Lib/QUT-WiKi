@@ -5,8 +5,15 @@ wordCount: false
 ---
 
 <script setup>
+import { ref } from 'vue'
 import contributorsMapping from '../../.vitepress/contributors-mapping.json'
 
+// 贡献者自定义字段说明：
+// - avatar：自定义头像地址，支持 http/https 链接或 /public 目录下的路径，
+//           优先级高于 contributors-mapping.json 中配置的头像
+// - github：GitHub 用户名，未填写 links 时用它生成默认的 GitHub 链接
+// - tags：标签数组，例如 ['前端', '地图']
+// - links：自定义链接数组，格式为 { text, url }
 const contributorMeta = [
   {
     name: 'LucasAndrew',
@@ -81,6 +88,11 @@ const contributorMeta = [
       { text: 'GitHub', url: 'https://github.com/Selenophilia-lianyue' },
     ],
   },
+  {
+    name: '广东人',
+    tags: [],
+    avatar: 'https://pic1.imgdb.cn/i/034v2telM3L0he2hy5B8V0.webp',
+  },
 ]
 
 function findMapping(name) {
@@ -95,21 +107,21 @@ function findMapping(name) {
   return {}
 }
 
-const contributors = contributorMeta.map((item) => {
+const contributors = ref(contributorMeta.map((item) => {
   const raw = findMapping(item.name)
   const mapped = raw && typeof raw === 'object' ? raw : { github: raw }
   const github = mapped.github || item.github
   return {
     ...item,
     github,
-    avatar: mapped.avatar || item.avatar,
+    avatar: item.avatar || mapped.avatar,
     links: item.links?.length
       ? item.links
       : github
         ? [{ text: 'GitHub', url: `https://github.com/${github}` }]
         : [],
   }
-})
+}))
 </script>
 
 # 贡献者
@@ -121,9 +133,15 @@ const contributors = contributorMeta.map((item) => {
     v-for="person in contributors"
     :key="person.name"
     class="contributors-page-card"
-    :class="{ 'contributors-page-card-no-tags': !person.tags.length }"
   >
-    <img v-if="person.avatar" class="contributors-page-avatar" :src="person.avatar" :alt="person.name" />
+    <img
+      v-if="person.avatar"
+      class="contributors-page-avatar"
+      :src="person.avatar"
+      :alt="person.name"
+      referrerpolicy="no-referrer"
+      @error="person.avatar = ''"
+    />
     <span v-else class="contributors-page-avatar contributors-page-avatar-text">{{ person.name.slice(0, 2) }}</span>
     <span class="contributors-page-name">{{ person.name }}</span>
     <span v-if="person.tags.length" class="contributors-page-tags">{{ person.tags.join(' / ') }}</span>
@@ -158,26 +176,20 @@ const contributors = contributorMeta.map((item) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   min-height: 124px;
   padding: 8px;
   text-align: center;
 }
 
-.contributors-page-card-no-tags {
-  justify-content: center;
-  gap: 8px;
-}
-
-.contributors-page-card-no-tags .contributors-page-avatar {
-  margin: 0;
-}
-
 .contributors-page-avatar {
   width: 48px;
   height: 48px;
+  flex: 0 0 48px;
   border-radius: 50%;
   object-fit: cover;
-  margin: 6px 0;
+  margin: 0;
 }
 
 .contributors-page-avatar-text {
