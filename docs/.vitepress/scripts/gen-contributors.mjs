@@ -166,12 +166,14 @@ function normalizeManualContributor(item) {
   return contributor
 }
 
-function parseContributorObject(lines, start) {
+function parseContributorObject(lines, start, listIndent = 2) {
   const item = {}
   let index = start
   for (; index < lines.length; index++) {
     const line = lines[index]
-    if (!/^\s{4,}\S/.test(line)) break
+    const indent = line.match(/^\s*/)[0].length
+    // 只读取比列表项 '-' 缩进更深的字段行，遇到平级或更浅的内容即结束
+    if (!line.trim() || indent <= listIndent) break
     const match = line.trim().match(/^(name|email|github|avatar):\s*(.+)$/)
     if (match) item[match[1]] = match[2].trim().replace(/^['"]|['"]$/g, '')
   }
@@ -210,15 +212,16 @@ function getManualContributors(filePath) {
     }
 
     for (i += 1; i < lines.length; i++) {
-      const item = lines[i].match(/^\s{2}-\s*(.*)$/)
+      const item = lines[i].match(/^(\s*)-\s*(.*)$/)
       if (!item) {
         if (/^\S/.test(lines[i])) i--
         break
       }
+      const listIndent = item[1].length
 
-      const value = item[1].trim()
+      const value = item[2].trim()
       if (!value) {
-        const parsed = parseContributorObject(lines, i + 1)
+        const parsed = parseContributorObject(lines, i + 1, listIndent)
         if (parsed.contributor) contributors.push(parsed.contributor)
         i = parsed.nextIndex - 1
         continue
@@ -227,7 +230,7 @@ function getManualContributors(filePath) {
       const pair = value.match(/^(name|email|github|avatar):\s*(.+)$/)
       if (pair) {
         const itemObject = { [pair[1]]: pair[2].trim().replace(/^['"]|['"]$/g, '') }
-        const parsed = parseContributorObject(lines, i + 1)
+        const parsed = parseContributorObject(lines, i + 1, listIndent)
         Object.assign(itemObject, parsed.item)
         const contributor = normalizeManualContributor(itemObject)
         if (contributor) contributors.push(contributor)
