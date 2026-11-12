@@ -93,6 +93,11 @@ const contributorMeta = [
     tags: [],
     avatar: 'https://pic1.imgdb.cn/i/034v2telM3L0he2hy5B8V0.webp',
   },
+  {
+    name: '遊锐',
+    tags: [],
+    avatar: 'https://pic1.imgdb.cn/i/034w81mAaPEMLz2mAQERW0.webp',
+  },
 ]
 
 function findMapping(name) {
