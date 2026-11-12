@@ -330,16 +330,16 @@ export const FOODS = [
   },
   {
     id: 'shuangheyuan-shangjieli',
-    name: '双合园·海鲜水饺青岛菜（上街里店）',
+    name: '双合园·海鲜水饺青岛菜(品牌首店)',
     cover: 'https://pic1.imgdb.cn/i/034w91zDcONoSCspabUtQC.webp',
     category: 'outside',
     campus: 's',
-    location: '市北区四方路39号',
+    location: '市北区人民二路8-2号',
     price: '偏高',
     tags: ['青岛菜', '海鲜水饺', '现炒'],
     recommend: '脆炸虾仁、风味茄子、海鲜水饺',
     desc: '又是一家品牌首店，含金量不用多说。推荐脆炸虾仁和风味茄子还有海鲜水饺，青岛本土餐饮品牌，点餐尽可能往海边的菜点。价格偏高，但都是现炒的，没有预制菜。综合评分（6.8/10）。',
-    coord: [120.32069, 36.070407]
+    coord: [120.357887,36.108373]
   },
   {
     id: 'tongguolang-niurou-huoguo',
