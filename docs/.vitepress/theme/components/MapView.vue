@@ -7,15 +7,11 @@ import {
   CAMPUS_CONFIG,
   FILTER_LIST
 } from './map-data.js'
-
-/* 高德地图 Web 端 JS API key（lbs.amap.com 控制台申请，应用类型：Web端(JS API)） */
-const AMAP_KEY = 'cc942326fd33951c36e3f35a16bc204f'
+import { loadAMap, MAP_STYLES } from './amap-loader.js'
 
 const PIN_SIZE = 28
 const PIN_SCALE = { idle: 1, hover: 1.3, selected: 1.4 }
 const FIRST_PAINT_TIMEOUT_MS = 2500
-/* 高德官方内置样式：normal 标准 / dark 夜间 */
-const MAP_STYLES = { light: 'amap://styles/normal', dark: 'amap://styles/dark' }
 
 /* ================= 状态 ================= */
 const mapEl = ref(null)
@@ -125,25 +121,7 @@ const POLYGONS = {
 }
 
 /* ================= 高德地图加载 ================= */
-function loadAMap() {
-  return new Promise((resolve, reject) => {
-    if (window.AMap) return resolve(window.AMap)
-    /* 2021 年后申请的 key 需要安全密钥，必须在 SDK 脚本加载前设置 */
-    window._AMapSecurityConfig = {
-      securityJsCode: '08b66b63cfa12c5beccf95cb1cdb8839'
-    }
-    window.__QUTMapReady = () => {
-      if (window.AMap) resolve(window.AMap)
-      else reject(new Error('高德地图 SDK 已响应，但没有提供地图对象'))
-    }
-    const script = document.createElement('script')
-    script.async = true
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(AMAP_KEY)}&callback=__QUTMapReady`
-    script.onerror = () => reject(new Error('高德地图 SDK 加载失败'))
-    document.head.appendChild(script)
-    setTimeout(() => reject(new Error('高德地图 SDK 加载超时')), 15000)
-  })
-}
+/* loadAMap 由 amap-loader.js 提供，与美食地图共用同一个 key 与安全密钥 */
 
 /* ================= 坐标转换（仅外链导航用） ================= */
 const X_PI = (Math.PI * 3000) / 180

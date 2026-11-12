@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { FOODS, FOOD_CAMPUS, FOOD_CATEGORIES, getFoodPhotos } from './food-data.js'
+import FoodMap from './FoodMap.vue'
 import {
   twikooEnvId,
   ratingState,
@@ -283,6 +284,8 @@ onBeforeUnmount(() => {
         <input v-model="keyword" class="qut-food-search" type="search" placeholder="搜索名称、地点或标签">
       </div>
     </div>
+
+    <FoodMap :items="filtered" @select="openDialog" />
 
     <p v-if="!filtered.length" class="qut-food-empty">没有匹配的美食，换个关键词试试。</p>
 
