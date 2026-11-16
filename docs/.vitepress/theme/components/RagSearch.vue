@@ -32,6 +32,8 @@ let inputEl: HTMLInputElement | null = null
 let controller: AbortController | null = null
 let observer: MutationObserver | null = null
 let raf = 0
+let viewportEl: HTMLElement | null = null
+let viewportRaf = 0
 const cache = new Map<string, { answer: string, refs: RagRef[] }>()
 
 const visible = computed(() => query.value.trim().length >= 2 || status.value !== 'idle')
@@ -304,12 +306,68 @@ function onNativeKeydown(event: KeyboardEvent) {
   ask()
 }
 
+/**
+ * 移动端软键盘会把可视视口（visualViewport）缩到布局视口之内。
+ * 原生搜索弹层是按布局视口定位的，键盘一弹出输入框就可能被顶到可视区域之外，
+ * 这里把弹层钉在可视视口上，并让结果列表在剩余空间里滚动。
+ */
+const VIEWPORT_VARS = [
+  '--qut-search-vv-top',
+  '--qut-search-vv-left',
+  '--qut-search-vv-width',
+  '--qut-search-vv-height',
+]
+
+function syncSearchViewport() {
+  const viewport = window.visualViewport
+  if (!viewport) return
+  const style = document.documentElement.style
+  style.setProperty('--qut-search-vv-top', `${viewport.offsetTop}px`)
+  style.setProperty('--qut-search-vv-left', `${viewport.offsetLeft}px`)
+  style.setProperty('--qut-search-vv-width', `${viewport.width}px`)
+  style.setProperty('--qut-search-vv-height', `${viewport.height}px`)
+}
+
+function onSearchViewportChange() {
+  if (viewportRaf) return
+  viewportRaf = window.requestAnimationFrame(() => {
+    viewportRaf = 0
+    syncSearchViewport()
+  })
+}
+
+function startViewportTracking(drawer: HTMLElement | null) {
+  stopViewportTracking()
+  if (!drawer) return
+  viewportEl = drawer
+  drawer.classList.add('qut-rag-active')
+  syncSearchViewport()
+  window.visualViewport?.addEventListener('resize', onSearchViewportChange)
+  window.visualViewport?.addEventListener('scroll', onSearchViewportChange)
+  window.addEventListener('resize', onSearchViewportChange)
+}
+
+function stopViewportTracking() {
+  window.visualViewport?.removeEventListener('resize', onSearchViewportChange)
+  window.visualViewport?.removeEventListener('scroll', onSearchViewportChange)
+  window.removeEventListener('resize', onSearchViewportChange)
+  if (viewportRaf) {
+    cancelAnimationFrame(viewportRaf)
+    viewportRaf = 0
+  }
+  viewportEl?.classList.remove('qut-rag-active')
+  viewportEl = null
+  const style = document.documentElement.style
+  for (const name of VIEWPORT_VARS) style.removeProperty(name)
+}
+
 function teardown() {
   if (inputEl) {
     inputEl.removeEventListener('input', onInputEvent)
     inputEl.removeEventListener('keydown', onNativeKeydown)
     inputEl = null
   }
+  stopViewportTracking()
   stop()
   host.value = null
   query.value = ''
@@ -344,6 +402,7 @@ function attach() {
     lastQuery = inputEl.value
   }
   host.value = el
+  startViewportTracking(shell.closest<HTMLElement>('.VPLocalSearchBox'))
 }
 
 function scheduleAttach() {

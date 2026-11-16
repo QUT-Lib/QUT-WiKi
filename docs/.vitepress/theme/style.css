@@ -621,3 +621,44 @@ mark.search-term-highlight.search-term-fade {
 .rag-search-host {
   display: contents;
 }
+
+/* 窄屏搜索弹层：钉在可视视口上，软键盘弹出时输入框仍留在顶部。
+   --qut-search-vv-* 由 RagSearch.vue 根据 visualViewport 实时写入。 */
+@media not all and (min-width: 48rem) {
+  :root .VPLocalSearchBox.qut-rag-active {
+    top: var(--qut-search-vv-top, 0);
+    right: auto;
+    bottom: auto;
+    left: var(--qut-search-vv-left, 0);
+    width: var(--qut-search-vv-width, 100vw);
+    height: var(--qut-search-vv-height, 100dvh);
+  }
+
+  :root .VPLocalSearchBox.qut-rag-active .shell {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  /* 输入框固定在最上面，不参与收缩 */
+  :root .VPLocalSearchBox.qut-rag-active .search-bar {
+    flex: none;
+  }
+
+  /* AI 卡片最多占一半高度，过长时卡片内部滚动 */
+  :root .VPLocalSearchBox.qut-rag-active .rag-search-card {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 55%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* 搜索结果吃掉剩余空间，在自身内部滚动 */
+  :root .VPLocalSearchBox.qut-rag-active .results {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+}

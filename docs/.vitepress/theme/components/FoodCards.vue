@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vitepress'
 import { FOODS, FOOD_CAMPUS, FOOD_CATEGORIES, getFoodPhotos } from './food-data.js'
 import FoodMap from './FoodMap.vue'
 import {
@@ -39,6 +40,81 @@ const ratingOnlyMessage = ref('')
 
 let observer = null
 let decorateTimer = null
+
+/* ===== 弹层与浏览器返回手势 =====
+ * 卡片打开时压入一条历史记录，这样 Android / iOS 的侧滑返回会先消费这条记录，
+ * 用于关闭卡片，而不是直接回到上一个页面。 */
+const OVERLAY_STATE_KEY = 'qutFoodOverlay'
+const OVERLAY_ID_KEY = 'qutFoodOverlayId'
+let historySeq = 0
+let dialogHistoryId = 0
+let viewerHistoryId = 0
+let overlayHref = ''
+const router = useRouter()
+
+/** 去掉 .html / index.html / 末尾斜杠，便于比较同一页面 */
+function normalizeHref(value) {
+  try {
+    const url = new URL(value, location.origin)
+    const path = url.pathname
+      .replace(/index\.html$/, '')
+      .replace(/\.html$/, '')
+      .replace(/\/+$/, '')
+    return `${path}${url.search}${url.hash}`
+  } catch {
+    return String(value || '')
+  }
+}
+
+/**
+ * 弹层压入的历史记录与当前页面同 URL。返回手势回到这条记录时，
+ * VitePress 默认会重新加载页面（开发环境下会重建组件、丢掉弹层状态），
+ * 这里拦下来交给 onPopState 处理。
+ */
+function onBeforePageLoad(href) {
+  if (!overlayHref) return
+  if (normalizeHref(href) !== overlayHref) return
+  return false
+}
+
+function pushOverlayState(kind) {
+  // 只更新滚动位置，保留上一层弹层的标记（图片查看器压在卡片之上）
+  const base = { ...(history.state || {}) }
+  base.scrollPosition = typeof window === 'undefined' ? 0 : window.scrollY
+  history.replaceState(base, '')
+  const id = ++historySeq
+  history.pushState({ ...base, [OVERLAY_STATE_KEY]: kind, [OVERLAY_ID_KEY]: id }, '')
+  return id
+}
+
+function popOverlayState(id) {
+  if (!id) return
+  if (history.state?.[OVERLAY_ID_KEY] === id) history.back()
+}
+
+function stripStaleOverlayState() {
+  const state = history.state
+  if (!state || state[OVERLAY_STATE_KEY] === undefined) return
+  const clean = { ...state }
+  delete clean[OVERLAY_STATE_KEY]
+  delete clean[OVERLAY_ID_KEY]
+  history.replaceState(clean, '')
+}
+
+function onPopState() {
+  if (!overlayHref) return
+  const kind = history.state?.[OVERLAY_STATE_KEY]
+
+  // 返回到了图片查看器的上一层：只关查看器，卡片继续留着
+  if (viewerOpen.value && kind !== 'viewer') {
+    viewerOpen.value = false
+    viewerHistoryId = 0
+    return
+  }
+  if (active.value && kind !== 'dialog') closeDialog(true)
+  // 回到页面自己的历史记录后，弹层的同 URL 守卫就可以撤掉了
+  if (!active.value && !viewerOpen.value) overlayHref = ''
+}
 
 const foods = computed(() => (Array.isArray(props.items) ? props.items : []))
 
@@ -130,6 +206,12 @@ function hideBroken(event) {
 }
 
 async function openDialog(item) {
+  if (!active.value) {
+    // 清掉以前可能残留的弹层标记，避免误判返回层级
+    stripStaleOverlayState()
+    overlayHref = normalizeHref(location.href)
+    dialogHistoryId = pushOverlayState('dialog')
+  }
   active.value = item
   viewerOpen.value = false
   viewerIndex.value = 0
@@ -204,7 +286,11 @@ function scheduleDecorate() {
   decorateTimer = window.setTimeout(() => decorateRatings(commentSlot.value), 120)
 }
 
-function closeDialog() {
+function closeDialog(fromHistory = false) {
+  const dialogId = dialogHistoryId
+  const viewerId = viewerHistoryId
+  dialogHistoryId = 0
+  viewerHistoryId = 0
   active.value = null
   viewerOpen.value = false
   observer?.disconnect()
@@ -214,12 +300,32 @@ function closeDialog() {
   if (slot) slot.removeEventListener('click', scheduleDecorate)
   destroyTwikoo(slot)
   if (typeof document !== 'undefined') document.body.style.overflow = ''
+
+  if (fromHistory) {
+    overlayHref = ''
+    return
+  }
+  const currentId = history.state?.[OVERLAY_ID_KEY]
+  // 理论上不会出现（查看器会盖住卡片），兜底一起退掉两层
+  const popping = viewerId && currentId === viewerId ? -2 : (dialogId && currentId === dialogId ? -1 : 0)
+  if (popping) history.go(popping)
+  // 没有可退的弹层记录时，直接撤掉守卫，避免同 URL 跳转被误拦
+  else overlayHref = ''
 }
 
 function openViewer(index) {
   if (!activePhotos.value.length) return
   viewerIndex.value = index
   viewerOpen.value = true
+  if (!viewerHistoryId) viewerHistoryId = pushOverlayState('viewer')
+}
+
+function closeViewer() {
+  if (!viewerOpen.value) return
+  const viewerId = viewerHistoryId
+  viewerOpen.value = false
+  viewerHistoryId = 0
+  popOverlayState(viewerId)
 }
 
 function changeViewer(step) {
@@ -231,7 +337,7 @@ function changeViewer(step) {
 function onKeydown(event) {
   if (!active.value) return
   if (event.key === 'Escape') {
-    viewerOpen.value ? (viewerOpen.value = false) : closeDialog()
+    viewerOpen.value ? closeViewer() : closeDialog()
   } else if (viewerOpen.value && event.key === 'ArrowLeft') {
     changeViewer(-1)
   } else if (viewerOpen.value && event.key === 'ArrowRight') {
@@ -248,12 +354,18 @@ watch(
 )
 
 onMounted(() => {
+  stripStaleOverlayState()
   document.addEventListener('keydown', onKeydown)
+  window.addEventListener('popstate', onPopState)
+  router.onBeforePageLoad = onBeforePageLoad
   loadRatings(foods.value.map((item) => item.id))
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('popstate', onPopState)
+  if (router.onBeforePageLoad === onBeforePageLoad) router.onBeforePageLoad = undefined
+  overlayHref = ''
   observer?.disconnect()
   if (decorateTimer) window.clearTimeout(decorateTimer)
   destroyTwikoo(commentSlot.value)
@@ -335,9 +447,9 @@ onBeforeUnmount(() => {
     </div>
 
     <Teleport to="body">
-      <div v-if="active" class="qut-food-modal" @click.self="closeDialog">
+      <div v-if="active" class="qut-food-modal" @click.self="closeDialog()">
         <div class="qut-food-dialog" role="dialog" aria-modal="true" :aria-label="active.name">
-          <button class="qut-food-dialog-close" type="button" aria-label="关闭" @click="closeDialog">&times;</button>
+          <button class="qut-food-dialog-close" type="button" aria-label="关闭" @click="closeDialog()">&times;</button>
 
           <div class="qut-food-dialog-head">
             <h2>{{ active.name }}</h2>
@@ -421,8 +533,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div v-if="viewerOpen" class="qut-food-viewer" @click.self="viewerOpen = false">
-          <button class="qut-food-viewer-close" type="button" aria-label="关闭" @click="viewerOpen = false">&times;</button>
+        <div v-if="viewerOpen" class="qut-food-viewer" @click.self="closeViewer">
+          <button class="qut-food-viewer-close" type="button" aria-label="关闭" @click="closeViewer">&times;</button>
           <button
             v-if="activePhotos.length > 1"
             class="qut-food-viewer-nav prev"
