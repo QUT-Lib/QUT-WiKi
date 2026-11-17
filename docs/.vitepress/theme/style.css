@@ -678,3 +678,8 @@ mark.search-term-highlight.search-term-fade {
     min-height: 0;
   }
 }
+
+/* 首页功能区正好 5 个板块时按 3 列排布，避免最后一行只剩一张卡片 */
+.VPFeatures .items:has(> .item:nth-child(5):last-child) .item.grid-4 {
+  width: calc(100% / 3);
+}

@@ -29,6 +29,10 @@ features:
     title: 校园生活
     details: 了解校园内的各类信息
     link: start/campus-life/study/academic-system
+  - icon: 🎓
+    title: 飞跃手册
+    details: 保研、考研、考公、就业与留学经验分享
+    link: start/feiyue/feiyue-introduce
   - icon: 📝
     title: 关于
     details: 参与贡献&加入我们

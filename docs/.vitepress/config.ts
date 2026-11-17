@@ -223,7 +223,7 @@ function sidebarGroupToNav(group: DefaultTheme.SidebarItem): DefaultTheme.NavIte
 }
 
 const majorSections = buildStartSidebar()
-  .filter((g) => ['新生入学', '校园生活', '关于'].includes(g.text))
+  .filter((g) => ['新生入学', '校园生活', '飞跃手册', '关于'].includes(g.text))
   .map(sidebarGroupToNav)
 
 // dev 模式下监听 docs/start：仅当生成结果（结构/标题/顺序）变化时重启，
