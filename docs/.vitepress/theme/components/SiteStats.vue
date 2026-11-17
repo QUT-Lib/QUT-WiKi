@@ -1,67 +1,20 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-
-const SHARE_ID = 'iib1PnzFrZEe9dVR'
-const UMAMI_ORIGIN = 'https://umami.lris625.top'
-const CACHE_KEY = 'qutwiki:site-stats'
-const CACHE_TTL = 10 * 60 * 1000
+import { getSiteStats, formatNumber } from '../umami-stats'
 
 const pageviews = ref(null)
 const visitors = ref(null)
 const ready = ref(false)
 
-function formatNumber(value) {
-  if (value >= 10000) return `${(value / 1000).toFixed(1)}K`
-  return value.toLocaleString('zh-CN')
-}
-
-function readCache() {
+onMounted(async () => {
+  ready.value = Boolean(document.getElementById('qutwiki-site-stats'))
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const cached = JSON.parse(raw)
-    if (!cached || Date.now() - cached.at > CACHE_TTL) return null
-    return cached
-  } catch {
-    return null
-  }
-}
-
-function writeCache(data) {
-  try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), ...data }))
-  } catch {}
-}
-
-async function loadStats() {
-  const cached = readCache()
-  if (cached) {
-    pageviews.value = cached.pageviews
-    visitors.value = cached.visitors
-    return
-  }
-
-  try {
-    const share = await (await fetch(`${UMAMI_ORIGIN}/api/share/${SHARE_ID}`)).json()
-    const headers = {
-      'x-umami-share-token': share.token,
-      'x-umami-share-context': '1',
-    }
-    const stats = await (
-      await fetch(
-        `${UMAMI_ORIGIN}/api/websites/${share.websiteId}/stats?startAt=0&endAt=${Date.now()}`,
-        { headers },
-      )
-    ).json()
+    const stats = await getSiteStats()
     pageviews.value = stats.pageviews
     visitors.value = stats.visitors
-    writeCache({ pageviews: stats.pageviews, visitors: stats.visitors })
-  } catch {}
-}
-
-onMounted(() => {
-  ready.value = Boolean(document.getElementById('qutwiki-site-stats'))
-  loadStats()
+  } catch (err) {
+    console.warn('[SiteStats] 全站统计加载失败（多半被广告拦截或网络拦截）', err)
+  }
 })
 </script>
 

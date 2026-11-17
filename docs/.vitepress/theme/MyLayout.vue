@@ -6,6 +6,7 @@ import Contributors from './components/Contributors.vue'
 import GitHistory from './components/GitHistory.vue'
 import TwikooComments from './components/TwikooComments.vue'
 import SiteStats from './components/SiteStats.vue'
+import PageViews from './components/PageViews.vue'
 import RagSearch from './components/RagSearch.vue'
 import { flashAnchor, resolveHashElement } from './line-anchors'
 
@@ -402,6 +403,7 @@ onUnmounted(() => {
         <GitHistory />
       </template>
     </DefaultTheme.Layout>
+    <PageViews />
   </div>
   <SiteStats />
   <RagSearch />

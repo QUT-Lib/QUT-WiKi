@@ -353,22 +353,29 @@ export default defineConfig({
       md.use(xlsxTablePlugin, docsRoot)
       md.use(flinkBlockPlugin)
       md.core.ruler.push('word_count', (state) => {
-        if ((state.env as any).frontmatter?.wordCount === false) return
+        const tokens = state.tokens
+        const enabled = (state.env as any).frontmatter?.wordCount !== false
         const text = state.src.replace(/[^\u4e00-\u9fff]/g, '')
         const count = text.length
-        if (count === 0) return
-        const minutes = count < 150 ? '不到1分钟' : `约${Math.ceil(count / 350)}分钟`
-        const tokens = state.tokens
         for (let i = 0; i < tokens.length; i++) {
-          if (tokens[i].type === 'heading_open' && tokens[i].tag === 'h1') {
-            const closeIdx = tokens.findIndex((t, j) => j > i && t.type === 'heading_close' && t.tag === 'h1')
-            if (closeIdx !== -1) {
-              const span = new state.Token('html_inline', '', 0)
-              span.content = `<span class="word-count">${count}字 / ${minutes}</span>`
-              tokens.splice(closeIdx, 0, span)
-            }
-            break
+          if (tokens[i].type !== 'heading_open' || tokens[i].tag !== 'h1') continue
+          const closeIdx = tokens.findIndex((t, j) => j > i && t.type === 'heading_close' && t.tag === 'h1')
+          if (closeIdx === -1) break
+
+          let insertAt = closeIdx
+          if (enabled && count > 0) {
+            const minutes = count < 150 ? '不到1分钟' : `约${Math.ceil(count / 350)}分钟`
+            const span = new state.Token('html_inline', '', 0)
+            span.content = `<span class="word-count">${count}字 / ${minutes}</span>`
+            tokens.splice(insertAt, 0, span)
+            insertAt++
           }
+
+          // 本页浏览量的占位，客户端由 PageViews 组件填充
+          const views = new state.Token('html_inline', '', 0)
+          views.content = '<span class="page-views" id="qutwiki-page-views"></span>'
+          tokens.splice(insertAt, 0, views)
+          break
         }
       })
       const origImg = md.renderer.rules.image || ((tokens: any, idx: any, options: any, _env: any, self: any) => self.renderToken(tokens, idx, options))

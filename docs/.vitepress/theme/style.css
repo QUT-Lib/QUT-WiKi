@@ -80,6 +80,22 @@ body::before {
   margin-left: 12px;
 }
 
+.page-views {
+  color: #999;
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 12px;
+}
+
+h1 .word-count + .page-views::before {
+  content: '· ';
+}
+
+.page-views-num strong {
+  color: rgb(1, 93, 149);
+  font-weight: 700;
+}
+
 .vp-doc strong {
   font-weight: 700;
   color: rgb(1, 93, 149);
