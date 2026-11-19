@@ -1083,8 +1083,8 @@ onBeforeUnmount(() => {
 
   .qut-food-dialog {
     width: 100%;
-    max-height: 100vh;
-    height: 100vh;
+    max-height: 100%;
+    height: 100%;
     border-radius: 0;
   }
 
