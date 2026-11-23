@@ -4,6 +4,7 @@ import { readdirSync, readFileSync, statSync } from 'fs'
 import { resolve, extname, dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import taskLists from 'markdown-it-task-lists'
+import { katexPlugin } from './plugins/katex.ts'
 import { xlsxTablePlugin } from './plugins/xlsx-table.ts'
 import { flinkBlockPlugin } from './plugins/flink-block.ts'
 import { fnv1a32, sourceLinesPlugin } from './plugins/source-lines.ts'
@@ -43,6 +44,7 @@ const directoryLabels: Record<string, string> = {
   'feiyue/rpa': '保研',
   'feiyue/pee': '考研',
   'feiyue/cse': '考公',
+  'feiyue/cs-ai': '计算机-人工智能',
   'feiyue/emp': '就业',
   'feiyue/sa': '留学',
   about: '关于',
@@ -349,6 +351,13 @@ export default defineConfig({
   markdown: {
     config: (md) => {
       md.use(taskLists)
+      // KaTeX：$...$ 行内公式，$$...$$ 块级公式。
+      // throwOnError 关掉后写错的公式会渲染成红色错误提示，而不是中断构建；
+      // strict 忽略中文/Unicode 在公式里的告警，避免构建日志被刷屏。
+      md.use(katexPlugin, {
+        throwOnError: false,
+        strict: 'ignore',
+      })
       md.use(sourceLinesPlugin)
       md.use(xlsxTablePlugin, docsRoot)
       md.use(flinkBlockPlugin)
