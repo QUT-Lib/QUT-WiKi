@@ -73,6 +73,25 @@ body::before {
   color: rgb(1, 93, 149);
 }
 
+/* KaTeX 公式排版：块级公式过长时横向滚动，行内公式跟随正文基线 */
+.vp-doc .katex {
+  font-size: 1.05em;
+}
+
+.vp-doc .katex-block {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+.vp-doc .katex-block .katex-display {
+  margin: 0;
+}
+
+.vp-doc .katex-error {
+  color: #cc0000;
+}
+
 .word-count {
   color: #999;
   font-size: 14px;

@@ -9,6 +9,7 @@ import FoodCards from './components/FoodCards.vue'
 import PosterCards from './components/PosterCards.vue'
 import GitHistory from './components/GitHistory.vue'
 import RagSearch from './components/RagSearch.vue'
+import 'katex/dist/katex.min.css'
 import './style.css'
 
 export default {
